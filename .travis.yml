@@ -1,0 +1,47 @@
+dist: xenial
+language: python
+python:
+  - 3.7
+#  - 3.8-dev
+
+sudo: required
+# container based image (sudo: false) stopped working for some reason. Crashing the test script on database commit!
+
+services:
+  - docker
+  - postgresql
+
+cache: pip
+
+install:
+  - sudo apt-get install gcc
+  - pip install 'pip>=8.1.2'
+  - pip install pip-tools
+  - pip install appdirs
+  - pip install numpy
+  - pip install cython
+  - pip install nltk
+  - pip install spacy
+  # - python -m nltk.downloader all
+  - python -m nltk.downloader punkt
+  - python -m nltk.downloader vader_lexicon
+  - python -m nltk.downloader averaged_perceptron_tagger
+  - python -m nltk.downloader maxent_ne_chunker
+  - python -m nltk.downloader words
+  - python -m nltk.downloader tagsets
+  - python -m nltk.downloader stopwords
+  - python -m spacy download en
+before_script:
+  # - psql -c "CREATE DATABASE test_tropical;" -U postgres
+  # - psql -c "CREATE USER tropical WITH PASSWORD 'tropical';" -U postgres
+  - make requirements
+  - make deps
+script:
+  - make check
+  - make test
+# after_success:
+#   - export TRAVIS_BRANCH_CLEAN=`echo $TRAVIS_BRANCH | sed 's/\//-/g'`
+#   - export REPO=praekeltcom/tropical-app
+#   - docker login -u $DOCKER_USER -p $DOCKER_PASS
+#   - export TAG=`if [ "$TRAVIS_TAG" != "" ]; then echo $TRAVIS_TAG; else echo $TRAVIS_BRANCH_CLEAN ; fi`
+#   - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then docker build -t $REPO:$TAG . && docker push $REPO:$TAG; fi

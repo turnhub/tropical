@@ -1,0 +1,13 @@
+pip-tools
+appdirs
+api-tackle
+spacy
+nltk
+demoji
+sklearn
+jellyfish
+pandas
+gensim
+sentencepiece
+tokenizers
+wget

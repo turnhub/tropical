@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+    app:
+        image: praekeltcom/tropical-app:latest
+        environment:
+            - LC_ALL=C.UTF-8
+        command: gunicorn --bind 0.0.0.0:80 -w 1 -t 120 wsgi
+        # Non-wsgi equivalent
+        #command: python3 python flask_app.py --server_port=7100 --prometheus_port=9100
+        ports:
+          - "7100:80"

@@ -1,0 +1,293 @@
+swagger: "2.0"
+
+info:
+  description: Trends and Topical Analysis
+  version: 0.1.dev1
+  title: Tropical 🏝
+  contact:
+    name: Turn.io and Feersum Engine (Pty) Ltd
+    url: www.turn.io
+    email: bernardt@feersum.io
+
+host: nlu.dev.feersum.io:443
+basePath: /
+
+schemes:
+  - https
+  # - http
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+# Global security (applies to all operations):
+securityDefinitions:
+  APIKeyHeader_old:
+    type: apiKey
+    x-apikeyInfoFunc: tackle.rest_api.flask_server.controllers.controller_util.api_key_auth
+    in: header
+    name: AUTH_TOKEN
+  APIKeyHeader:
+    type: apiKey
+    x-apikeyInfoFunc: tackle.rest_api.flask_server.controllers.controller_util.api_key_auth
+    in: header
+    name: X-Auth-Token
+
+security:
+  - APIKeyHeader_old: []
+  - APIKeyHeader: []
+
+tags:
+  - name: health
+    description: An enpoint to check if the service is alive and well. Checks more than just skin deep.
+  - name: ngrams
+    description: Do exploratory data analysis using word ngram counting.
+  - name: topics
+    description: Do exploratory data analysis using topic modelling.
+  - name: semantic_clusters
+    description: Do exploratory data analysis using semantic clustering.
+
+
+paths:
+  ###################################
+  ###################################
+  ########
+  ## health root
+  ########
+  /health:
+    parameters:
+      - $ref: '#/parameters/caller'
+
+    get:
+      tags:
+        - health
+      summary: An endpoint to check if the service is alive and well.
+      x-swagger-router-controller: tackle.rest_api.flask_server.controllers
+      operationId: health_controller.get_status
+      description: Check if the service is alive and well.
+      responses:
+        200:
+          description: service is healthy
+        400:
+          description: bad request
+        401:
+          $ref: "#/responses/UnauthorizedError"
+
+
+  ###################################
+  ###################################
+  ########
+  ## ngrams root
+  ########
+  /ngrams_url:
+    parameters:
+      - $ref: '#/parameters/caller'
+
+    post:
+      tags:
+        - ngrams
+      summary: Start a new ngram analysis process. Uses whitespace word tokenisation.
+      x-swagger-router-controller: tropical.rest_api
+      operationId: ngram_controller.start_process_url
+      description: Start a new ngram analysis process. Input file retrieved from the supplied URL. If no callback is specified then the service will do the processing immediately and respond with the result.
+      parameters:
+        - in: body
+          name: request_detail
+          description: The details of the process to start.
+          required: true
+          schema:
+            $ref: "#/definitions/ngrams_request_detail"
+
+      responses:
+        200:
+          $ref: "#/responses/process_detail"
+        400:
+          description: bad request
+        401:
+          $ref: "#/responses/UnauthorizedError"
+
+
+  /ngrams_form:
+    parameters:
+      - $ref: '#/parameters/caller'
+
+    post:
+      tags:
+        - ngrams
+      summary: Start a new ngram analysis process. Uses whitespace word tokenisation.
+      x-swagger-router-controller: tropical.rest_api
+      operationId: ngram_controller.start_process_form
+      description: Start a new ngram analysis process. Input file uploaded via a form post. If no callback is specified then the service will do the processing immediately and respond with the result.
+      consumes:
+        - multipart/form-data
+      parameters:
+        - in: formData
+          name: upfile
+          type: file
+          required: true
+          description: The csv file to process.
+        - in: formData
+          name: file_format_version
+          type: string
+          required: true
+          description: The dataformat version of the CSV file i.e. which data columns should be expected.
+        - in: formData
+          name: callback
+          type: string
+          description: The url to post the analysis results to.
+
+      responses:
+        200:
+          $ref: "#/responses/process_detail"
+        400:
+          description: bad request
+        401:
+          $ref: "#/responses/UnauthorizedError"
+
+
+  ###################################
+  ###################################
+  ########
+  ## ngrams_bpe root
+  ########
+  /ngrams_bpe_url:
+    parameters:
+      - $ref: '#/parameters/caller'
+
+    post:
+      tags:
+        - ngrams
+      summary: Start a new ngram analysis process. Uses Sentence Piece BPE tokenisation.
+      x-swagger-router-controller: tropical.rest_api
+      operationId: ngram_bpe_controller.start_process_url
+      description: Start a new ngram analysis process. Input file retrieved from the supplied URL. If no callback is specified then the service will do the processing immediately and respond with the result.
+      parameters:
+        - in: body
+          name: request_detail
+          description: The details of the process to start.
+          required: true
+          schema:
+            $ref: "#/definitions/ngrams_request_detail"
+
+      responses:
+        200:
+          $ref: "#/responses/process_detail"
+        400:
+          description: bad request
+        401:
+          $ref: "#/responses/UnauthorizedError"
+
+
+  /ngrams_bpe_form:
+    parameters:
+      - $ref: '#/parameters/caller'
+
+    post:
+      tags:
+        - ngrams
+      summary: Start a new ngram analysis process. Uses Sentence Piece BPE tokenisation.
+      x-swagger-router-controller: tropical.rest_api
+      operationId: ngram_bpe_controller.start_process_form
+      description: Start a new ngram analysis process. Input file uploaded via a form post. If no callback is specified then the service will do the processing immediately and respond with the result.
+      consumes:
+        - multipart/form-data
+      parameters:
+        - in: formData
+          name: upfile
+          type: file
+          required: true
+          description: The csv file to process.
+        - in: formData
+          name: file_format_version
+          type: string
+          required: true
+          description: The dataformat version of the CSV file i.e. which data columns should be expected.
+        - in: formData
+          name: callback
+          type: string
+          description: The url to post the analysis results to.
+
+      responses:
+        200:
+          $ref: "#/responses/process_detail"
+        400:
+          description: bad request
+        401:
+          $ref: "#/responses/UnauthorizedError"
+
+
+###################################
+# Descriptions of common parameters
+###################################
+parameters:
+  caller:
+    in: header
+    name: X-CALLER
+    type: string
+    required: false
+
+
+##################################
+# Descriptions of common responses
+##################################
+responses:
+  UnauthorizedError:
+    description: API key is missing or invalid
+    headers:
+      WWW_Authenticate:
+        type: string
+
+  process_detail:
+    description: The details of the started process.
+    schema:
+      $ref: "#/definitions/process_detail"
+
+
+####################################
+# Descriptions of common definitions
+####################################
+definitions:
+
+  ngrams_request_detail:
+    description: The details of the ngram process to start.
+    type: object
+    required:
+      - file_url
+      - file_format_version
+    properties:
+      file_url:
+        description: The URL of the input file.
+        type: string
+        example: https://api.source.io/the_file.csv
+      file_format_version:
+        description: The dataformat version of the CSV file i.e. which data columns should be expected.
+        type: string
+        example: "1.0"
+      callback:
+        description: The callback url to 'post' the analysis results to.
+        type: string
+        example: https://api.sink.io
+
+  process_detail:
+    description: The details of the started process.
+    type: object
+    required:
+      - file_format_version
+      - uuid
+    properties:
+      file_format_version:
+        description: The dataformat version of the CSV file i.e. which data columns should be expected.
+        type: string
+        example: "1.0"
+      uuid:
+        description: The UUID of the process.
+        type: string
+        example: '30ede16f-6d4d-42b4-8912-34e8c8054b34'
+      callback:
+        description: The callback url the results will be posted to.
+        type: string
+        example: https://api.sink.io
+      response_frames:
+        description: The analysis results.
+        type: object
