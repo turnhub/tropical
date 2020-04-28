@@ -5,7 +5,14 @@ gunicorn --bind 0.0.0.0:80 -w 1 -t 120 wsgi
 """
 
 import os
+import sys
 import logging
+
+# NOTE: The below import is useful to bring feersum_nlu into the Python path!
+module_path = os.path.abspath(os.path.join('..'))
+print("module_path =", module_path, flush=True)
+if module_path not in sys.path:
+    sys.path.append(module_path)
 
 from tackle.flask_utils import create_flask_app  # noqa
 from tackle.flask_utils import setup_logging  # noqa

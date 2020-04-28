@@ -9,7 +9,6 @@ from tropical.rest_api import ngram_bpe_wrapper
 @controller_util.controller_decorator
 def start_process_url(user, token_info,
                       request_detail):
-    """ Reports back 200 if possible i.e. if service is up. """
     auth_token = controller_util.get_auth_token()
     caller_name = controller_util.get_caller_name()
 
