@@ -1,6 +1,6 @@
 pip-tools
 appdirs
-api-tackle
+api-tackle==0.1
 spacy
 nltk
 demoji

@@ -76,7 +76,7 @@ def main():
     add_auth_token('27deb7c5-8577-451d-b66a-3414e814b353', 'pingdom')
     # === ===
 
-    logging.info(f"rest_flask_app.py: Starting Flask app.")
+    logging.info("rest_flask_app.py: Starting Flask app.")
     flask_app.run(server_port)
 
 

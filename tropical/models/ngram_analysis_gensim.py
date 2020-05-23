@@ -122,6 +122,9 @@ class NGramAnalysisGensim(NGramAnalysisBase):
         :return: A dict [{'time_frame':, 'num_utterances':, 'top_phrases': ['phrase':, 'importance':, 'utterances':[]]}]
         """
 
+        # Remove any rows with NaNs and missing values.
+        big_dataframe_raw = big_dataframe_raw.dropna()
+
         if big_dataframe_raw.columns[0] == 'day':
             new_columns = list(big_dataframe_raw.columns)
             new_columns[0] = 'time_frame'
@@ -132,6 +135,7 @@ class NGramAnalysisGensim(NGramAnalysisBase):
         big_dataframe_raw.insert(len(big_dataframe_raw.columns), 'utterance_length', big_dataframe_raw['content'].str.len())
 
         utterance_length_threshold = np.percentile(big_dataframe_raw['utterance_length'], 98.0)
+        print(f"utterance_length_threshold = {utterance_length_threshold}")
         big_dataframe = big_dataframe_raw[big_dataframe_raw['utterance_length'] <= utterance_length_threshold]
 
         # print(dataframe.columns)

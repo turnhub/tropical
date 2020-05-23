@@ -51,5 +51,5 @@ logging.info(f"rest_wsgi_app.py: __name__ == {__name__}")
 application = flask_app.app
 
 if __name__ == "__main__":
-    logging.info(f"rest_wsgi_app.py: __main__ Starting Flask app in Python __main__ .")
+    logging.info("rest_wsgi_app.py: __main__ Starting Flask app in Python __main__ .")
     flask_app.run()

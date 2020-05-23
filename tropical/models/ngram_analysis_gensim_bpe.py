@@ -168,16 +168,16 @@ class NGramAnalysisGensimBPE(NGramAnalysisBase):
 
             uuids = list(data_frame['uuid'])
 
-            logging.info(f"ngram_analysis_gensim_bpe.analyse_dataframe: __tokenize_and_lower...")
+            logging.info("ngram_analysis_gensim_bpe.analyse_dataframe: __tokenize_and_lower...")
             tokenized_dataframe_utterances = self.__tokenize_and_lower(dataframe_utterances)
-            logging.info(f"ngram_analysis_gensim_bpe.analyse_dataframe: __build_ngrams...")
+            logging.info("ngram_analysis_gensim_bpe.analyse_dataframe: __build_ngrams...")
             ngrammed_dataframe_utterances = self.__build_ngrams(tokenized_dataframe_utterances,
                                                                 threshold=10,  # ToDo: experiment with this threshold.
                                                                 stopwords=self.__basic_stopwords,
                                                                 delimiter=delimiter)
 
             # Dict[phrase, count], Dict[phrase, List[uuid_str]]
-            logging.info(f"ngram_analysis_gensim_bpe.analyse_dataframe: __extract_top_ngrams...")
+            logging.info("ngram_analysis_gensim_bpe.analyse_dataframe: __extract_top_ngrams...")
             phrase_count_dict, phrase_uuid_dict = self.__extract_top_ngrams(uuids,
                                                                             ngrammed_dataframe_utterances,
                                                                             max_count=20,  # max_count of each of uni, bi, tri, etc.
@@ -193,7 +193,7 @@ class NGramAnalysisGensimBPE(NGramAnalysisBase):
 
             print(f"time_frame = {time_frame}, num_phrases = {count_total}: ")
 
-            logging.info(f"ngram_analysis_gensim_bpe.analyse_dataframe: response...")
+            logging.info("ngram_analysis_gensim_bpe.analyse_dataframe: response...")
             response_frame: Dict[str, Any] = dict()
             response_frame['time_frame'] = time_frame
             response_frame['num_utterances'] = num_dataframe_utterances

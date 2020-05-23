@@ -36,7 +36,7 @@ check:
 	@echo [pylint]:
 	@pylint --verbose -E $(pylint_flags) $(_checkfiles)
 	@echo [flake8]:
-	@flake8 $(flake8_flags) $(checkfiles)
+	@flake8 $(flake8_flags) $(_checkfiles)
 
 local_postgress_db:
 	-psql -c "CREATE ROLE tropical WITH LOGIN PASSWORD 'tropical';"

@@ -32,13 +32,13 @@ class TestRestNGramsEndpoint(BaseTestCase):
         start_time = time.time()
 
         file_url = "https://storage.googleapis.com/io-feersum-vectors-nlu-prod/Extract_inbound_that_triggered_catchall_2020_04_20.csv?x-" \
-                   "goog-signature=7ec8f4ad2861be33c91dd09c07f6b73b9236a432ad2d8dd0d781f66a000798c8a0a82640640cb08cb23342c7bedd6c21e3355" \
-                   "36eefdad8557ad70ae849ae4fb082b905c583bdbc6121029c696bc1d4c0986bdeb82862e1312bde3b3c1f7bfd25c2f8c3a3d4bcd586e1876128e" \
-                   "f5b6f84bae7794f5a54e1be4b189972a3bd4dd17e23453b8cb88c34df4de2752936f4b1c9d349f40106849b0c29ad33e0bce6e3b3cce3679097b" \
-                   "a016cb24e0fd2d879c5cd0bcc85097ef5f3721c4c393344d2b33e7a9e785008e0b457a1cce9f3bcf81cb2fae01f638e277eacac8e0131c7620df" \
-                   "b4ff902dc59da4ea7f28981b11d5644e0d6c44ba03ae926f20569c9a66d1a59&x-goog-algorithm=GOOG4-RSA-SHA256&x-goog-credential=" \
-                   "gcp-storage%40feersum-221018.iam.gserviceaccount.com%2F20200427%2Fmulti%2Fstorage%2Fgoog4_request&x-goog-date=202004" \
-                   "27T170613Z&x-goog-expires=604800&x-goog-signedheaders=host"
+                   "goog-signature=a4cdb1d4f809174ffbb1954f210cbfa2586c6d52783a328d46e95dbacd1fdf6c2f33660fdc603df9a8599357dd341c990eb10" \
+                   "f918561e702962f4f79d673436d07748f000e9bfbfbc0887e207995c7b8b5a8fb5b49dc01a3d5de5418fbe729e92ce76de4d35d7e736c924b411" \
+                   "7641b0a6a554e8bbb2c715eef4b86a9c669bdff7866c374197aa8d579e976116ee637012f06e27df16b9dc26d40ae3249593abf661d7224d4397" \
+                   "d1d0133b00f635cb434c38c0b3dd199344c434bcb5efc8a7c7f9175e855fd0c16d0121c4cbf6b46889f86528460e05fae232848a3d2e598d19b7" \
+                   "0bb9f3a4bae05a2995618806c9e128c1cab4fb7e52cb016673814074584a16e&x-goog-algorithm=GOOG4-RSA-SHA256&x-goog-credential=" \
+                   "gcp-storage%40feersum-221018.iam.gserviceaccount.com%2F20200523%2Fmulti%2Fstorage%2Fgoog4_request&x-goog-date=202005" \
+                   "23T124251Z&x-goog-expires=604800&x-goog-signedheaders=host"
 
         # Register the async callback sink callback.
         responses.add_callback(responses.POST,
@@ -74,13 +74,13 @@ class TestRestNGramsEndpoint(BaseTestCase):
         start_time = time.time()
 
         file_url = "https://storage.googleapis.com/io-feersum-vectors-nlu-prod/Extract_inbound_that_triggered_catchall_2020_04_20.csv?x-" \
-                   "goog-signature=7ec8f4ad2861be33c91dd09c07f6b73b9236a432ad2d8dd0d781f66a000798c8a0a82640640cb08cb23342c7bedd6c21e3355" \
-                   "36eefdad8557ad70ae849ae4fb082b905c583bdbc6121029c696bc1d4c0986bdeb82862e1312bde3b3c1f7bfd25c2f8c3a3d4bcd586e1876128e" \
-                   "f5b6f84bae7794f5a54e1be4b189972a3bd4dd17e23453b8cb88c34df4de2752936f4b1c9d349f40106849b0c29ad33e0bce6e3b3cce3679097b" \
-                   "a016cb24e0fd2d879c5cd0bcc85097ef5f3721c4c393344d2b33e7a9e785008e0b457a1cce9f3bcf81cb2fae01f638e277eacac8e0131c7620df" \
-                   "b4ff902dc59da4ea7f28981b11d5644e0d6c44ba03ae926f20569c9a66d1a59&x-goog-algorithm=GOOG4-RSA-SHA256&x-goog-credential=" \
-                   "gcp-storage%40feersum-221018.iam.gserviceaccount.com%2F20200427%2Fmulti%2Fstorage%2Fgoog4_request&x-goog-date=202004" \
-                   "27T170613Z&x-goog-expires=604800&x-goog-signedheaders=host"
+                   "goog-signature=a4cdb1d4f809174ffbb1954f210cbfa2586c6d52783a328d46e95dbacd1fdf6c2f33660fdc603df9a8599357dd341c990eb10" \
+                   "f918561e702962f4f79d673436d07748f000e9bfbfbc0887e207995c7b8b5a8fb5b49dc01a3d5de5418fbe729e92ce76de4d35d7e736c924b411" \
+                   "7641b0a6a554e8bbb2c715eef4b86a9c669bdff7866c374197aa8d579e976116ee637012f06e27df16b9dc26d40ae3249593abf661d7224d4397" \
+                   "d1d0133b00f635cb434c38c0b3dd199344c434bcb5efc8a7c7f9175e855fd0c16d0121c4cbf6b46889f86528460e05fae232848a3d2e598d19b7" \
+                   "0bb9f3a4bae05a2995618806c9e128c1cab4fb7e52cb016673814074584a16e&x-goog-algorithm=GOOG4-RSA-SHA256&x-goog-credential=" \
+                   "gcp-storage%40feersum-221018.iam.gserviceaccount.com%2F20200523%2Fmulti%2Fstorage%2Fgoog4_request&x-goog-date=202005" \
+                   "23T124251Z&x-goog-expires=604800&x-goog-signedheaders=host"
 
         response = send_request(self.client, "/ngrams_url", "post",
                                 {"file_url": file_url,

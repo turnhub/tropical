@@ -9,9 +9,9 @@ api-tackle==0.1           # via -r etc/requirements.in
 appdirs==1.4.3            # via -r etc/requirements.in, api-tackle
 attrs==19.3.0             # via api-tackle, jsonschema
 blis==0.4.1               # via spacy, thinc
-boto3==1.12.47            # via smart-open
+boto3==1.13.16            # via smart-open
 boto==2.49.0              # via smart-open
-botocore==1.15.47         # via boto3, s3transfer
+botocore==1.16.16         # via boto3, s3transfer
 catalogue==1.0.0          # via spacy, thinc
 certifi==2020.4.5.1       # via api-tackle, requests
 chardet==3.0.4            # via api-tackle, requests
@@ -28,22 +28,22 @@ flask-script==2.0.6       # via api-tackle
 flask-sqlalchemy==2.4.1   # via api-tackle, flask-migrate
 flask-testing==0.8.0      # via api-tackle
 flask==1.1.2              # via api-tackle, connexion, flask-cors, flask-migrate, flask-script, flask-sqlalchemy, flask-testing
-gensim==3.8.2             # via -r etc/requirements.in
+gensim==3.8.3             # via -r etc/requirements.in
 gunicorn==20.0.4          # via api-tackle
 idna==2.9                 # via api-tackle, requests
 importlib-metadata==1.6.0  # via api-tackle, catalogue, jsonschema
 inflection==0.4.0         # via api-tackle, connexion
 itsdangerous==1.1.0       # via api-tackle, flask
-jellyfish==0.7.2          # via -r etc/requirements.in
+jellyfish==0.8.2          # via -r etc/requirements.in
 jinja2==2.11.2            # via api-tackle, flask, swagger-ui-bundle
-jmespath==0.9.5           # via boto3, botocore
-joblib==0.14.1            # via nltk, scikit-learn
+jmespath==0.10.0          # via boto3, botocore
+joblib==0.15.1            # via nltk, scikit-learn
 jsonschema==3.2.0         # via api-tackle, connexion, openapi-spec-validator
 mako==1.1.2               # via alembic, api-tackle
 markupsafe==1.1.1         # via api-tackle, jinja2, mako
 murmurhash==1.0.2         # via preshed, spacy, thinc
 nltk==3.5                 # via -r etc/requirements.in
-numpy==1.18.3             # via blis, gensim, pandas, scikit-learn, scipy, spacy, thinc
+numpy==1.18.4             # via blis, gensim, pandas, scikit-learn, scipy, spacy, thinc
 openapi-spec-validator==0.2.8  # via api-tackle, connexion
 pandas==1.0.3             # via -r etc/requirements.in
 pip-tools==5.1.0          # via -r etc/requirements.in, api-tackle
@@ -54,24 +54,25 @@ psycopg2==2.8.5           # via api-tackle
 pyrsistent==0.16.0        # via api-tackle, jsonschema
 python-dateutil==2.8.1    # via alembic, api-tackle, botocore, pandas
 python-editor==1.0.4      # via alembic, api-tackle
-pytz==2019.3              # via pandas
+pytz==2020.1              # via pandas
 pyyaml==5.3.1             # via api-tackle, clickclick, connexion, openapi-spec-validator
-regex==2020.4.4           # via nltk
+regex==2020.5.14          # via nltk
 requests==2.23.0          # via api-tackle, connexion, demoji, smart-open, spacy
 s3transfer==0.3.3         # via boto3
-scikit-learn==0.22.2.post1  # via sklearn
+scikit-learn==0.23.1      # via sklearn
 scipy==1.4.1              # via gensim, scikit-learn
-sentencepiece==0.1.86     # via -r etc/requirements.in
+sentencepiece==0.1.91     # via -r etc/requirements.in
 six==1.14.0               # via api-tackle, flask-cors, gensim, jsonschema, openapi-spec-validator, pip-tools, pyrsistent, python-dateutil
 sklearn==0.0              # via -r etc/requirements.in
-smart-open==1.11.1        # via gensim
+smart-open==2.0.0         # via gensim
 spacy==2.2.4              # via -r etc/requirements.in
 sqlalchemy==1.3.16        # via alembic, api-tackle, flask-sqlalchemy
 srsly==1.0.2              # via spacy, thinc
 swagger-ui-bundle==0.0.6  # via api-tackle, connexion
 thinc==7.4.0              # via spacy
+threadpoolctl==2.0.0      # via scikit-learn
 tokenizers==0.7.0         # via -r etc/requirements.in
-tqdm==4.45.0              # via nltk, spacy, thinc
+tqdm==4.46.0              # via nltk, spacy, thinc
 urllib3==1.25.9           # via api-tackle, botocore, requests
 wasabi==0.6.0             # via spacy, thinc
 werkzeug==1.0.1           # via api-tackle, flask
