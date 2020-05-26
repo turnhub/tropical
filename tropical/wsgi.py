@@ -19,6 +19,7 @@ from tackle.flask_utils import setup_logging  # noqa
 from tackle.prometheus_utils import create_prometheus_server  # noqa
 # from tackle.rest_api import wrapper_util  # noqa
 from tackle.rest_api.wrapper_util import add_auth_token  # noqa
+
 from tropical.rest_api import get_path  # noqa
 
 create_prometheus_server(9101)
