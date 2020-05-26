@@ -62,7 +62,7 @@ def __start_process(task_filename: str,
     logging.info(f"ngram_wrapper.start_process: Start {task_uuid} with callback={callback}.")
 
     # ToDo: catch read_csv and other exceptions.
-    df = pd.read_csv(task_filename)
+    df = pd.read_csv(task_filename, na_filter=False)
 
     if callback is None:
         # Just do it synchronously.

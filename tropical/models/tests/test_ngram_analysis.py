@@ -25,7 +25,7 @@ class TestNGramAnalysis(BaseTestCase):
         # ===
         filename = wget.download(file_url)
         print("filename =", filename)
-        df = pd.read_csv(filename)
+        df = pd.read_csv(filename, na_filter=False)
         os.remove(filename)
 
         print(df.columns)
