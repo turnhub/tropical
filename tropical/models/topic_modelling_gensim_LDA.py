@@ -87,7 +87,7 @@ class TopicModellingGensimLDA(TopicModellingBase):
 
         return ngrammed_utterances
 
-    def __build_lda_model(self, uuids, ngrammed_utterances):
+    def __build_lda_model(self, ngrammed_utterances):
         """ gensim implementation of Latent Dirichlet Allocation
         """
         # Create Dictionary
@@ -104,8 +104,8 @@ class TopicModellingGensimLDA(TopicModellingBase):
                         id2word=id2word,
                         num_topics=10,
                         random_state=42,
-                        update_every=1,
-                        chunksize=128,
+                        update_every=8,
+                        chunksize=2048,
                         passes=10,
                         alpha='auto',
                         per_word_topics=True)
