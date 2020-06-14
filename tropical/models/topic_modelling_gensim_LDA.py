@@ -2,13 +2,14 @@ from typing import Dict, List, Set, Any, Tuple  # noqa # pylint: disable=unused-
 
 import pandas as pd
 import numpy as np
-import random
 
 from gensim.models import Phrases
 from gensim.models.phrases import Phraser
 
 import gensim.corpora as corpora
+
 from gensim.models.ldamodel import LdaModel as LDA
+from gensim.models import CoherenceModel
 
 from tropical.models.topic_modelling_base import TopicModellingBase
 
@@ -21,12 +22,26 @@ class TopicModellingGensimLDA(TopicModellingBase):
     Tropical Topic Modelling Gensim - Latent Dirichlet Allocation: ....
     """
 
-    def __init__(self, n_topics) -> None:
+    def __init__(self, n_topics=None, min_topics=None, step=None) -> None:
         super().__init__()
         self.uuid = ""  # Duck typed unique version identifier.
         self.__basic_stopwords = set(nltk_stopwords.words('english')) & spacy_stopwords
         self.__basic_stop_phrases = self.__basic_stopwords
-        self.n_topics = n_topics
+
+        if n_topics is None:
+            self.n_topics = 10
+        else:
+            self.n_topics = n_topics
+
+        if min_topics is None:
+            self.min_topics = 2
+        else:
+            self.min_topics = min_topics
+
+        if step is None:
+            self.step = 2
+        else:
+            self.step = step
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -113,14 +128,60 @@ class TopicModellingGensimLDA(TopicModellingBase):
 
         return lda_model
 
-    def __extract_topics(self, model):
+    def __compute_coherence_values(self, ngrammed_utterances):
+        """
+        Compute c_v coherence for various number of topics
+
+        Parameters:
+        ----------
+        dictionary : Gensim dictionary
+        corpus : Gensim corpus
+        texts : List of input texts
+        limit : Max num of topics
+
+        Returns:
+        -------
+        model_list : List of LDA topic models
+        coherence_values : Coherence values corresponding to the LDA model with respective number of topics
+        """
+        coherence_values = []
+        model_list = []
+
+        start = self.min_topics
+        limit = self.n_topics
+        step = self.step
+
+        variations = int((limit-start)/step)
+        if variations > 10:
+            print(f"Running {variations} variations of the topic model, this might take a few minutes")
+
+        for num_topics in range(start, limit, step):
+            print(f"Running Model for {num_topics} topics")
+            model = self.__build_lda_model(ngrammed_utterances)
+
+            dictionary = self.__build_lda_model(ngrammed_utterances).id2word
+            texts = ngrammed_utterances
+
+            model_list.append(model)
+            coherence_model = CoherenceModel(model=model,
+                                             texts=texts,
+                                             dictionary=dictionary,
+                                             coherence='c_v')
+            coherence_values.append(coherence_model.get_coherence())
+
+        print(coherence_values)
+        return model_list, coherence_values
+
+    def __extract_topics(self, model_list, coherence_values):
         """
 
         """
-        return model.show_topics(formatted=False, num_topics=self.n_topics, num_words=10)
+        best_model = model_list[np.argmax(coherence_values)]
+
+        return best_model.show_topics(formatted=False, num_topics=self.n_topics, num_words=10)
 
     def analyse_dataframe(self, big_dataframe_raw: pd.DataFrame,
-                          delimiter: bytes = b'_') -> List[int, Tuple[str, float]]:
+                          delimiter: bytes = b'_') -> List[Dict[str, Any]]:
         """
         Analyse the messages in the incoming dataframe and extract topics.
 
@@ -148,6 +209,7 @@ class TopicModellingGensimLDA(TopicModellingBase):
         response_frame_list: List[Dict[str, Any]] = list()
 
         for time_frame, data_frame in big_dataframe.groupby('time_frame'):
+            print("Working on Frame", time_frame)
             dataframe_utterances = list(data_frame['content'])
             num_dataframe_utterances = len(dataframe_utterances)
 
@@ -159,41 +221,14 @@ class TopicModellingGensimLDA(TopicModellingBase):
                                                                 stopwords=self.__basic_stopwords,
                                                                 delimiter=delimiter)
 
-            lda_model = self.__build_lda_model(ngrammed_dataframe_utterances )
-            topics = self.__extract_topics(lda_model)
-            topic_num = [topic[0] for topic in topics]
+            model_list, coherence_values = self.__compute_coherence_values(ngrammed_dataframe_utterances)
+            topics = self.__extract_topics(model_list, coherence_values)
             topic_terms = [topic[1] for topic in topics]
-
-            # Dict[phrase, count], Dict[phrase, List[uuid_str]]
-            # phrase_count_dict, phrase_uuid_dict = self.__extract_top_ngrams(uuids,
-            #                                                                 ngrammed_dataframe_utterances,
-            #                                                                 max_count=20,  # max_count of each of uni, bi, tri, etc.
-            #                                                                 delimiter=delimiter)
-
-            # ===
-
-            # count_total = sum(phrase_count_dict.values())  # Used to normalise the importance.
-
-            # The phrases is likely already sorted, but below would then be fairly quick to execute.
-            # sorted_phrase_count_dict = {phrase: count for phrase, count in
-            #                             sorted(phrase_count_dict.items(), key=lambda item: item[1], reverse=True)}
-
-            # print(f"time_frame = {time_frame}, num_phrases = {count_total}: ")
 
             response_frame: Dict[str, Any] = dict()
             response_frame['time_frame'] = time_frame
             response_frame['num_utterances'] = num_dataframe_utterances
-            response_frame['topics'] = [{'topic_number': topic_num,
-                                         'topic_terms': topic_terms}]
-
-            # response_frame['top_phrases'] = [{"phrase": phrase,
-            #                                   "num_tokens": phrase.count(delimiter.decode(encoding="utf-8")) + 1,
-            #                                   "num_utterances": len(phrase_uuid_dict.get(phrase, set())),  # num_phrase_utterances
-            #                                   "num_utterances_percentage":
-            #                                       len(phrase_uuid_dict.get(phrase, set())) * 100.0 / num_dataframe_utterances,
-            #                                   "utterances": random.sample(phrase_uuid_dict.get(phrase, set()),
-            #                                                               min(len(phrase_uuid_dict.get(phrase, set())), 20))}  # ToDo: 20.
-            #                                  for phrase, count in sorted_phrase_count_dict.items()]
+            response_frame['topics'] = topic_terms
 
             response_frame_list.append(response_frame)
 
