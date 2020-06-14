@@ -1,4 +1,4 @@
-from typing import Dict, List, Set, Any  # noqa # pylint: disable=unused-import
+from typing import Dict, List, Set, Any, Tuple  # noqa # pylint: disable=unused-import
 
 import pandas as pd
 import numpy as np
@@ -21,11 +21,12 @@ class TopicModellingGensimLDA(TopicModellingBase):
     Tropical Topic Modelling Gensim - Latent Dirichlet Allocation: ....
     """
 
-    def __init__(self) -> None:
+    def __init__(self, n_topics) -> None:
         super().__init__()
         self.uuid = ""  # Duck typed unique version identifier.
         self.__basic_stopwords = set(nltk_stopwords.words('english')) & spacy_stopwords
         self.__basic_stop_phrases = self.__basic_stopwords
+        self.n_topics = n_topics
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -102,7 +103,7 @@ class TopicModellingGensimLDA(TopicModellingBase):
         # Build LDA model
         lda_model = LDA(corpus=corpus,
                         id2word=id2word,
-                        num_topics=10,
+                        num_topics=self.n_topics,
                         random_state=42,
                         update_every=8,
                         chunksize=2048,
@@ -112,58 +113,20 @@ class TopicModellingGensimLDA(TopicModellingBase):
 
         return lda_model
 
+    def __extract_topics(self, model):
+        """
 
-    def __extract_top_ngrams(self,
-                             uuids,
-                             ngrammed_utterances,
-                             max_count=10,
-                             delimiter: bytes = b'_'):
-        """ Extract top n ngrams. """
-        # ===
-        phrase_count_dict: Dict[str, int] = dict()  # {phrase: count}
-        phrase_uuid_dict: Dict[str, Set[str]] = dict()  # phrase: [uuids]
-
-        for idx, ngrammed_utterance in enumerate(ngrammed_utterances):
-            utterance_uuid = uuids[idx]
-
-            # Iterate over each phrase in the ngrammed/processed utterance and keep count of each unique phrase.
-            for phrase in ngrammed_utterance:
-                if phrase not in self.__basic_stop_phrases:
-                    count = phrase_count_dict.get(phrase, 0)
-                    uuid_set = phrase_uuid_dict.get(phrase, set())
-
-                    count += 1
-                    uuid_set.add(utterance_uuid)
-
-                    phrase_count_dict[phrase] = count
-                    phrase_uuid_dict[phrase] = uuid_set
-
-        # === Sort the phrases by count.
-        sorted_phrase_count_dict = {phrase: count for phrase, count in
-                                    sorted(phrase_count_dict.items(), key=lambda item: item[1], reverse=True)}
-
-        # === Iterate over the sorted phrases/n-grams and keep at most max_count of each size of n-gram.
-        ngram_count_dict: Dict[int, int] = dict()
-        top_phrase_count_dict: Dict[str, int] = dict()  # {phrase: count}
-
-        for phrase, count in sorted_phrase_count_dict.items():
-            n = phrase.count(delimiter.decode(encoding="utf-8")) + 1
-            ngram_count = ngram_count_dict.get(n, 0)
-            if ngram_count < max_count:
-                # Can still add more of this length of ngram so add this phrase to the the list of top phrases.
-                top_phrase_count_dict[phrase] = count
-            ngram_count_dict[n] = ngram_count + 1  # Update the count.
-
-        return top_phrase_count_dict, phrase_uuid_dict  # Dict[phrase, count], Dict[phrase, List[uuid_str]]
+        """
+        return model.show_topics(formatted=False, num_topics=self.n_topics, num_words=10)
 
     def analyse_dataframe(self, big_dataframe_raw: pd.DataFrame,
-                          delimiter: bytes = b'_') -> List[Dict[str, Any]]:
+                          delimiter: bytes = b'_') -> List[int, Tuple[str, float]]:
         """
-        Analyse the messages in the incoming dataframe for common ngrams.
+        Analyse the messages in the incoming dataframe and extract topics.
 
         :param big_dataframe_raw: The input dataframe {'time_frame':, 'uuid':, 'content':}
         :param delimiter:
-        :return: A dict [{'time_frame':, 'num_utterances':, 'top_phrases': ['phrase':, 'importance':, 'utterances':[]]}]
+        :return: A dict [{'time_frame':, 'num_utterances':, 'topic_index': ['topic_terms':[]]}]
         """
 
         # Remove any rows with NaNs and missing values.
@@ -182,10 +145,6 @@ class TopicModellingGensimLDA(TopicModellingBase):
         print(f"utterance_length_threshold = {utterance_length_threshold}")
         big_dataframe = big_dataframe_raw[big_dataframe_raw['utterance_length'] <= utterance_length_threshold]
 
-        # print(dataframe.columns)
-        # print(dataframe.describe())
-        # print(dataframe.sample(n=5))
-
         response_frame_list: List[Dict[str, Any]] = list()
 
         for time_frame, data_frame in big_dataframe.groupby('time_frame'):
@@ -200,34 +159,41 @@ class TopicModellingGensimLDA(TopicModellingBase):
                                                                 stopwords=self.__basic_stopwords,
                                                                 delimiter=delimiter)
 
+            lda_model = self.__build_lda_model(ngrammed_dataframe_utterances )
+            topics = self.__extract_topics(lda_model)
+            topic_num = [topic[0] for topic in topics]
+            topic_terms = [topic[1] for topic in topics]
+
             # Dict[phrase, count], Dict[phrase, List[uuid_str]]
-            phrase_count_dict, phrase_uuid_dict = self.__extract_top_ngrams(uuids,
-                                                                            ngrammed_dataframe_utterances,
-                                                                            max_count=20,  # max_count of each of uni, bi, tri, etc.
-                                                                            delimiter=delimiter)
+            # phrase_count_dict, phrase_uuid_dict = self.__extract_top_ngrams(uuids,
+            #                                                                 ngrammed_dataframe_utterances,
+            #                                                                 max_count=20,  # max_count of each of uni, bi, tri, etc.
+            #                                                                 delimiter=delimiter)
 
             # ===
 
-            count_total = sum(phrase_count_dict.values())  # Used to normalise the importance.
+            # count_total = sum(phrase_count_dict.values())  # Used to normalise the importance.
 
             # The phrases is likely already sorted, but below would then be fairly quick to execute.
-            sorted_phrase_count_dict = {phrase: count for phrase, count in
-                                        sorted(phrase_count_dict.items(), key=lambda item: item[1], reverse=True)}
+            # sorted_phrase_count_dict = {phrase: count for phrase, count in
+            #                             sorted(phrase_count_dict.items(), key=lambda item: item[1], reverse=True)}
 
-            print(f"time_frame = {time_frame}, num_phrases = {count_total}: ")
+            # print(f"time_frame = {time_frame}, num_phrases = {count_total}: ")
 
             response_frame: Dict[str, Any] = dict()
             response_frame['time_frame'] = time_frame
             response_frame['num_utterances'] = num_dataframe_utterances
-            response_frame['top_phrases'] = [{"phrase": phrase,
-                                              "num_tokens": phrase.count(delimiter.decode(encoding="utf-8")) + 1,
-                                              "importance": (count / count_total),
-                                              "num_utterances": len(phrase_uuid_dict.get(phrase, set())),  # num_phrase_utterances
-                                              "num_utterances_percentage":
-                                                  len(phrase_uuid_dict.get(phrase, set())) * 100.0 / num_dataframe_utterances,
-                                              "utterances": random.sample(phrase_uuid_dict.get(phrase, set()),
-                                                                          min(len(phrase_uuid_dict.get(phrase, set())), 20))}  # ToDo: 20.
-                                             for phrase, count in sorted_phrase_count_dict.items()]
+            response_frame['topics'] = [{'topic_number': topic_num,
+                                         'topic_terms': topic_terms}]
+
+            # response_frame['top_phrases'] = [{"phrase": phrase,
+            #                                   "num_tokens": phrase.count(delimiter.decode(encoding="utf-8")) + 1,
+            #                                   "num_utterances": len(phrase_uuid_dict.get(phrase, set())),  # num_phrase_utterances
+            #                                   "num_utterances_percentage":
+            #                                       len(phrase_uuid_dict.get(phrase, set())) * 100.0 / num_dataframe_utterances,
+            #                                   "utterances": random.sample(phrase_uuid_dict.get(phrase, set()),
+            #                                                               min(len(phrase_uuid_dict.get(phrase, set())), 20))}  # ToDo: 20.
+            #                                  for phrase, count in sorted_phrase_count_dict.items()]
 
             response_frame_list.append(response_frame)
 
