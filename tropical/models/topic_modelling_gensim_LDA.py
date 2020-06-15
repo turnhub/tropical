@@ -23,23 +23,23 @@ class TopicModellingGensimLDA(TopicModellingBase):
 
     Parameters:
     ----------
-            n_topics (int): The maximum number of topics to try
+            max_topics (int): The maximum number of topics to try
             min_topics (int): The minimum number of topics to try
             step (int): step size for number of topics
 
     """
 
-    def __init__(self, n_topics: int = None, min_topics: int = None, step: int = None) -> None:
+    def __init__(self, max_topics: int = None, min_topics: int = None, step: int = None) -> None:
 
         super().__init__()
         self.uuid = ""  # Duck typed unique version identifier.
         self.__basic_stopwords = set(nltk_stopwords.words('english')) & spacy_stopwords
         self.__basic_stop_phrases = self.__basic_stopwords
 
-        if n_topics is None:
-            self.n_topics = 10
+        if max_topics is None:
+            self.max_topics = 10
         else:
-            self.n_topics = n_topics
+            self.max_topics = max_topics
 
         if min_topics is None:
             self.min_topics = 2
@@ -160,7 +160,7 @@ class TopicModellingGensimLDA(TopicModellingBase):
         model_list = []
 
         start = self.min_topics
-        limit = self.n_topics
+        limit = self.max_topics
         step = self.step
 
         variations = limit//step
@@ -191,7 +191,7 @@ class TopicModellingGensimLDA(TopicModellingBase):
         best_model = model_list[np.argmax(coherence_values)]
         best_model_coherence = max(coherence_values)
 
-        return best_model.show_topics(formatted=False, num_topics=self.n_topics, num_words=10), best_model_coherence
+        return best_model.show_topics(formatted=False, num_topics=self.max_topics, num_words=10), best_model_coherence
 
     def analyse_dataframe(self, big_dataframe_raw: pd.DataFrame,
                           delimiter: bytes = b'_') -> List[Dict[str, Any]]:
@@ -226,7 +226,7 @@ class TopicModellingGensimLDA(TopicModellingBase):
             dataframe_utterances = list(data_frame['content'])
             num_dataframe_utterances = len(dataframe_utterances)
 
-            uuids = list(data_frame['uuid'])
+            # uuids = list(data_frame['uuid'])
 
             tokenized_dataframe_utterances = self.__tokenize_and_lower(dataframe_utterances)
             ngrammed_dataframe_utterances = self.__build_ngrams(tokenized_dataframe_utterances,
