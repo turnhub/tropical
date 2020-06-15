@@ -1,5 +1,5 @@
 """
-Service wrapper for the ngram model - Gensim implementation.
+Service wrapper for the topic model - Gensim implementation of LDA.
 """
 
 from typing import Tuple, Optional  # noqa # pylint: disable=unused-import
@@ -25,10 +25,8 @@ def __topic_gensim_lda_task(df: pd.DataFrame, file_format_version: str):
     return response_frames
 
 
-def __topic_gensim_lda_task_and_callback(df: pd.DataFrame, file_format_version: str,
-                              task_uuid: str, callback: str):
+def __topic_gensim_lda_task_and_callback(df: pd.DataFrame, file_format_version: str, task_uuid: str, callback: str):
     print(f"Process FORKED!!! Now in process with ID={os.getpid()}")
-
     response_frames = __topic_gensim_lda_task(df, file_format_version)
     payload = {
         "uuid": task_uuid,
@@ -67,7 +65,7 @@ def __start_process(task_filename: str,
     if callback is None:
         # Just do it synchronously.
         response_frames = __topic_gensim_lda_task(df, file_format_version)
-        logging.info(f"ngram_wrapper.__start_process: Completed {task_uuid} with callback={callback}.")
+        logging.info(f"topic_gensim_lda_wrapper.__start_process: Completed {task_uuid} with callback={callback}.")
         response_status = 200
     else:
         # Start an async task ...
