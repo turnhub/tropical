@@ -216,6 +216,74 @@ paths:
         401:
           $ref: "#/responses/UnauthorizedError"
 
+###################################
+###################################
+########
+## topic_model_gensim_LDA
+########
+  /topic_model_gensim_LDA_url:
+    parameters:
+      - $ref: '#/parameters/caller'
+
+    post:
+      tags:
+        - topics
+      summary: Start a new topic modelling analysis process. Uses Latent Dirichlet Allocation.
+      x-swagger-router-controller: tropical.rest_api
+      operationId: topic_gensim_lda_controller.start_process_url
+      description: Start a new topic modelling process. Input file retrieved from the supplied URL. If no callback is specified then the service will do the processing immediately and respond with the result.
+      parameters:
+        - in: body
+          name: request_detail
+          description: The details of the process to start.
+          required: true
+          schema:
+            $ref: "#/definitions/topic_model_gensim_LDA_request_detail"
+
+      responses:
+        200:
+          $ref: "#/responses/process_detail"
+        400:
+          description: bad request
+        401:
+          $ref: "#/responses/UnauthorizedError"
+
+  /topic_model_gensim_LDA_form:
+    parameters:
+      - $ref: '#/parameters/caller'
+
+    post:
+      tags:
+        - topics
+      summary: Start a new topic modelling process.
+      x-swagger-router-controller: tropical.rest_api
+      operationId: topic_gensim_lda_controller.start_process_form
+      description: Start a new topic modelling process. Input file uploaded via a form post. If no callback is specified then the service will do the processing immediately and respond with the result.
+      consumes:
+        - multipart/form-data
+      parameters:
+        - in: formData
+          name: upfile
+          type: file
+          required: true
+          description: The csv file to process.
+        - in: formData
+          name: file_format_version
+          type: string
+          required: true
+          description: The dataformat version of the CSV file i.e. which data columns should be expected.
+        - in: formData
+          name: callback
+          type: string
+          description: The url to post the analysis results to.
+
+      responses:
+        200:
+          $ref: "#/responses/process_detail"
+        400:
+          description: bad request
+        401:
+          $ref: "#/responses/UnauthorizedError"
 
 ###################################
 # Descriptions of common parameters
@@ -251,6 +319,26 @@ definitions:
 
   ngrams_request_detail:
     description: The details of the ngram process to start.
+    type: object
+    required:
+      - file_url
+      - file_format_version
+    properties:
+      file_url:
+        description: The URL of the input file.
+        type: string
+        example: https://api.source.io/the_file.csv
+      file_format_version:
+        description: The dataformat version of the CSV file i.e. which data columns should be expected.
+        type: string
+        example: "1.0"
+      callback:
+        description: The callback url to 'post' the analysis results to.
+        type: string
+        example: https://api.sink.io
+
+  topic_model_gensim_LDA_request_detail:
+    description: The details of the topic modelling process to start.
     type: object
     required:
       - file_url
