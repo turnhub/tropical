@@ -19,10 +19,18 @@ from nltk.corpus import stopwords as nltk_stopwords
 
 class TopicModellingGensimLDA(TopicModellingBase):
     """
-    Tropical Topic Modelling Gensim - Latent Dirichlet Allocation: ....
+    Tropical Topic Modelling Gensim - Latent Dirichlet Allocation.
+
+    Parameters:
+    ----------
+            n_topics (int): The maximum number of topics to try
+            min_topics (int): The minimum number of topics to try
+            step (int): step size for number of topics
+
     """
 
-    def __init__(self, n_topics=None, min_topics=None, step=None) -> None:
+    def __init__(self, n_topics: int = None, min_topics: int = None, step: int = None) -> None:
+
         super().__init__()
         self.uuid = ""  # Duck typed unique version identifier.
         self.__basic_stopwords = set(nltk_stopwords.words('english')) & spacy_stopwords
@@ -54,19 +62,19 @@ class TopicModellingGensimLDA(TopicModellingBase):
 
     @staticmethod
     def __tokenize_and_lower(utterances):
+        """ Whitespace tokenize and lowercase"""
         return [utterance.lower().split() for utterance in utterances]
 
+    # ToDo : create the regex for this function
     @staticmethod
     def __remove_urls(utterances):
         """Explicitly remove URLS from content"""   # Usually Spam
         pass
 
+    # ToDo : create the regex for this function
     @staticmethod
     def __lemmatize(utterances):
         """Can be used to allow only certain POS to be used (POS tagger for that language required)"""
-        pass
-
-    def __remove_urls(self):
         pass
 
     def __build_ngrams(self,
@@ -103,7 +111,7 @@ class TopicModellingGensimLDA(TopicModellingBase):
 
         return ngrammed_utterances
 
-    def __build_lda_model(self, ngrammed_utterances):
+    def __build_lda_model(self, ngrammed_utterances, num_topics):
         """ gensim implementation of Latent Dirichlet Allocation
         """
         # Create Dictionary
@@ -118,7 +126,7 @@ class TopicModellingGensimLDA(TopicModellingBase):
         # Build LDA model
         lda_model = LDA(corpus=corpus,
                         id2word=id2word,
-                        num_topics=self.n_topics,
+                        num_topics=num_topics,
                         random_state=42,
                         update_every=8,
                         chunksize=2048,
@@ -127,6 +135,10 @@ class TopicModellingGensimLDA(TopicModellingBase):
                         per_word_topics=True)
 
         return lda_model
+
+    # TODO : Might want to consider calculating 'best' topic inside this function
+    #   PROS : Don't have to pass multiple models into other functions
+    #   CONS : Stuck with using coherence to evaluate topic model
 
     def __compute_coherence_values(self, ngrammed_utterances):
         """
@@ -151,15 +163,15 @@ class TopicModellingGensimLDA(TopicModellingBase):
         limit = self.n_topics
         step = self.step
 
-        variations = int((limit-start)/step)
+        variations = limit//step
         if variations > 10:
             print(f"Running {variations} variations of the topic model, this might take a few minutes")
 
-        for num_topics in range(start, limit, step):
+        for num_topics in range(start, limit+step, step):
             print(f"Running Model for {num_topics} topics")
-            model = self.__build_lda_model(ngrammed_utterances)
+            model = self.__build_lda_model(ngrammed_utterances, num_topics)
 
-            dictionary = self.__build_lda_model(ngrammed_utterances).id2word
+            dictionary = corpora.Dictionary(ngrammed_utterances)
             texts = ngrammed_utterances
 
             model_list.append(model)
@@ -177,8 +189,9 @@ class TopicModellingGensimLDA(TopicModellingBase):
 
         """
         best_model = model_list[np.argmax(coherence_values)]
+        best_model_coherence = max(coherence_values)
 
-        return best_model.show_topics(formatted=False, num_topics=self.n_topics, num_words=10)
+        return best_model.show_topics(formatted=False, num_topics=self.n_topics, num_words=10), best_model_coherence
 
     def analyse_dataframe(self, big_dataframe_raw: pd.DataFrame,
                           delimiter: bytes = b'_') -> List[Dict[str, Any]]:
@@ -222,13 +235,14 @@ class TopicModellingGensimLDA(TopicModellingBase):
                                                                 delimiter=delimiter)
 
             model_list, coherence_values = self.__compute_coherence_values(ngrammed_dataframe_utterances)
-            topics = self.__extract_topics(model_list, coherence_values)
+            topics, coherence = self.__extract_topics(model_list, coherence_values)
             topic_terms = [topic[1] for topic in topics]
 
             response_frame: Dict[str, Any] = dict()
             response_frame['time_frame'] = time_frame
             response_frame['num_utterances'] = num_dataframe_utterances
             response_frame['topics'] = topic_terms
+            response_frame['coherence'] = coherence
 
             response_frame_list.append(response_frame)
 
