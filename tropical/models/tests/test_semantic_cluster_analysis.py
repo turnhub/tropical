@@ -4,14 +4,14 @@ import os
 import pandas as pd
 import json
 
-from tropical.models import ngram_analysis_gensim_bpe
+from tropical.models import semantic_cluster_analysis
 from tropical.models.tests import BaseTestCase
 
 
-class TestNGramAnalysis(BaseTestCase):
+class TestSemanticClusterAnalysis(BaseTestCase):
 
     def test(self):
-        print("Testing TestNGramAnalysis.test ...", flush=True)
+        print("Testing TestSemanticClusterAnalysis.test ...", flush=True)
 
         file_url = "https://storage.googleapis.com/io-feersum-vectors-nlu-prod/Extract_inbound_that_triggered_catchall_2020_04_20." \
                    "csv?x-goog-signature=57da4f3fe51e7345ecbfd3a332aee3e91fa425a9bb3eb358d56283bb7500b9611e3b5bf758e8c5b95a44fe70a57f4" \
@@ -24,6 +24,7 @@ class TestNGramAnalysis(BaseTestCase):
 
         # ===
         filename = wget.download(file_url)
+
         print("filename =", filename)
         df = pd.read_csv(filename, na_filter=False)
         os.remove(filename)
@@ -31,11 +32,12 @@ class TestNGramAnalysis(BaseTestCase):
         print(df.columns)
         print(df.describe())
         print(df.sample(n=5))
+        print(df.sample(n=5))
         # ===
 
-        analyser = ngram_analysis_gensim_bpe.NGramAnalysisGensimBPE()
+        analyser = semantic_cluster_analysis.SemanticClusterAnalysis()
         self.assertTrue(analyser is not None)
-        result = analyser.analyse_dataframe(df, delimiter=b'|')
+        result = analyser.analyse_dataframe(df)
 
         # ToDo: Add a reference static test file and add some specific result tests here.
 

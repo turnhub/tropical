@@ -11,3 +11,5 @@ gensim
 sentencepiece
 tokenizers
 wget
+tqdm
+sentence_transformers

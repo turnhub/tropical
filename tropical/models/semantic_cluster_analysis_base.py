@@ -4,9 +4,9 @@ from typing import Dict, Tuple, List, Optional, Set, Union  # noqa # pylint: dis
 import pandas as pd
 
 
-class NGramAnalysisBase(ABC):
+class SemanticClusterAnalysisBase(ABC):
     """
-    Tropical Ngram Analysis: Base class.
+    Tropical Semantic Cluster Analysis: Base class.
     """
 
     def __init__(self) -> None:
@@ -22,9 +22,9 @@ class NGramAnalysisBase(ABC):
     @abstractmethod
     def analyse_dataframe(self, dataframe: pd.DataFrame) -> List[Dict[str, List]]:
         """
-        Analyse the messages in the incoming dataframe for common ngrams.
+        Analyse the messages in the incoming dataframe for semantic clusters.
 
         :param dataframe: The input dataframe {'timeframe':, 'uuid':, 'content':}
-        :return: A dict [{'time_frame':, 'num_utterances':, 'top_phrases': ['phrase':, 'importance':, 'utterances':[]]}]
+        :return: A dict [{'timeframe':,  'utterances': ['text':, 'uuid':, 'cluster':, 'vector':]}]
         """
         pass

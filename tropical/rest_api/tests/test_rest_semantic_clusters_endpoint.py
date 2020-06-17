@@ -9,7 +9,7 @@ from tropical.rest_api import get_path
 
 
 # @unittest.skip("skipping during dev")
-class TestRestNGramsBPEEndpoint(BaseTestCase):
+class TestRestSemanticClustersEndpoint(BaseTestCase):
     def __init__(self, *args, **kwargs):
         BaseTestCase.__init__(self,
                               *args,
@@ -27,8 +27,8 @@ class TestRestNGramsBPEEndpoint(BaseTestCase):
 
     # @unittest.skip("skipping during dev")
     @responses.activate
-    def test_bpe_endpoint_async(self):
-        print("Rest HTTP test_bpe_endpoint_async:")
+    def test_endpoint_async(self):
+        print("Rest HTTP test_endpoint_async:")
         start_time = time.time()
 
         file_url = "https://storage.googleapis.com/io-feersum-vectors-nlu-prod/Extract_inbound_that_triggered_catchall_2020_04_20." \
@@ -47,7 +47,7 @@ class TestRestNGramsBPEEndpoint(BaseTestCase):
                                content_type='application/json')
 
         for idx in range(self.__test_endpoint_async_num_requests):
-            response_check = send_request_check_response(self.client, "/ngrams_bpe_url", "post",
+            response_check = send_request_check_response(self.client, "/semantic_clusters_url", "post",
                                                          {"file_url": file_url,
                                                           "file_format_version": "1.0",
                                                           "callback": "http://api.sink.io/callback"},
@@ -69,8 +69,8 @@ class TestRestNGramsBPEEndpoint(BaseTestCase):
 
         print('time = ' + str(time.time() - start_time))
 
-    def test_bpe_endpoint_sync(self):
-        print("Rest HTTP test_bpe_endpoint_sync:")
+    def test_endpoint_sync(self):
+        print("Rest HTTP test_endpoint_sync:")
         start_time = time.time()
 
         file_url = "https://storage.googleapis.com/io-feersum-vectors-nlu-prod/Extract_inbound_that_triggered_catchall_2020_04_20." \
@@ -82,7 +82,7 @@ class TestRestNGramsBPEEndpoint(BaseTestCase):
                    "goog-credential=gcp-storage%40feersum-221018.iam.gserviceaccount.com%2F20200617%2Fmulti%2Fstorage%2Fgoog4_request&" \
                    "x-goog-date=20200617T030749Z&x-goog-expires=604800&x-goog-signedheaders=host"
 
-        response = send_request(self.client, "/ngrams_bpe_url", "post",
+        response = send_request(self.client, "/semantic_clusters_url", "post",
                                 {"file_url": file_url,
                                  "file_format_version": "1.0"})
 

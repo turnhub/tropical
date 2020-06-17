@@ -78,6 +78,77 @@ paths:
   ###################################
   ###################################
   ########
+  ## semantic_clusters root
+  ########
+  /semantic_clusters_url:
+    parameters:
+      - $ref: '#/parameters/caller'
+
+    post:
+      tags:
+        - semantic_clusters
+      summary: Start a new semantic_cluster analysis process. Uses whitespace word tokenisation.
+      x-swagger-router-controller: tropical.rest_api
+      operationId: semantic_cluster_controller.start_process_url
+      description: Start a new semantic_cluster analysis process. Input file retrieved from the supplied URL. If no callback is specified then the service will do the processing immediately and respond with the result.
+      parameters:
+        - in: body
+          name: request_detail
+          description: The details of the process to start.
+          required: true
+          schema:
+            $ref: "#/definitions/request_detail"
+
+      responses:
+        200:
+          $ref: "#/responses/process_detail"
+        400:
+          description: bad request
+        401:
+          $ref: "#/responses/UnauthorizedError"
+
+
+  /semantic_clusters_form:
+    parameters:
+      - $ref: '#/parameters/caller'
+
+    post:
+      tags:
+        - semantic_clusters
+      summary: Start a new semantic_cluster analysis process. Uses whitespace word tokenisation.
+      x-swagger-router-controller: tropical.rest_api
+      operationId: semantic_cluster_controller.start_process_form
+      description: Start a new semantic_cluster analysis process. Input file uploaded via a form post. If no callback is specified then the service will do the processing immediately and respond with the result.
+      consumes:
+        - multipart/form-data
+      parameters:
+        - in: formData
+          name: upfile
+          type: file
+          required: true
+          description: The csv file to process.
+        - in: formData
+          name: file_format_version
+          type: string
+          required: true
+          description: The dataformat version of the CSV file i.e. which data columns should be expected.
+        - in: formData
+          name: callback
+          type: string
+          description: The url to post the analysis results to.
+
+      responses:
+        200:
+          $ref: "#/responses/process_detail"
+        400:
+          description: bad request
+        401:
+          $ref: "#/responses/UnauthorizedError"
+
+
+  ###################################
+  ###################################
+  ########
   ## ngrams root
   ########
   /ngrams_url:
@@ -97,7 +168,7 @@ paths:
           description: The details of the process to start.
           required: true
           schema:
-            $ref: "#/definitions/ngrams_request_detail"
+            $ref: "#/definitions/request_detail"
 
       responses:
         200:
@@ -168,7 +239,7 @@ paths:
           description: The details of the process to start.
           required: true
           schema:
-            $ref: "#/definitions/ngrams_request_detail"
+            $ref: "#/definitions/request_detail"
 
       responses:
         200:
@@ -249,8 +320,8 @@ responses:
 ####################################
 definitions:
 
-  ngrams_request_detail:
-    description: The details of the ngram process to start.
+  request_detail:
+    description: The details of the process to start.
     type: object
     required:
       - file_url

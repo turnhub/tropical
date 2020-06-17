@@ -17,7 +17,7 @@ class TestRestNGramsEndpoint(BaseTestCase):
                               requested_logging_path="~/.tropical/logs",
                               **kwargs)
 
-        self.__test_ngrams_endpoint_async_num_requests = 3
+        self.__test_endpoint_async_num_requests = 3
 
     def callback_sink(self, request):
         # Note: This will be called in multiple forked processes!
@@ -27,18 +27,18 @@ class TestRestNGramsEndpoint(BaseTestCase):
 
     # @unittest.skip("skipping during dev")
     @responses.activate
-    def test_ngrams_endpoint_async(self):
-        print("Rest HTTP test_ngrams_endpoint_async:")
+    def test_endpoint_async(self):
+        print("Rest HTTP test_endpoint_async:")
         start_time = time.time()
 
-        file_url = "https://storage.googleapis.com/io-feersum-vectors-nlu-prod/Extract_inbound_that_triggered_catchall_2020_04_20.csv?x-" \
-                   "goog-signature=a4cdb1d4f809174ffbb1954f210cbfa2586c6d52783a328d46e95dbacd1fdf6c2f33660fdc603df9a8599357dd341c990eb10" \
-                   "f918561e702962f4f79d673436d07748f000e9bfbfbc0887e207995c7b8b5a8fb5b49dc01a3d5de5418fbe729e92ce76de4d35d7e736c924b411" \
-                   "7641b0a6a554e8bbb2c715eef4b86a9c669bdff7866c374197aa8d579e976116ee637012f06e27df16b9dc26d40ae3249593abf661d7224d4397" \
-                   "d1d0133b00f635cb434c38c0b3dd199344c434bcb5efc8a7c7f9175e855fd0c16d0121c4cbf6b46889f86528460e05fae232848a3d2e598d19b7" \
-                   "0bb9f3a4bae05a2995618806c9e128c1cab4fb7e52cb016673814074584a16e&x-goog-algorithm=GOOG4-RSA-SHA256&x-goog-credential=" \
-                   "gcp-storage%40feersum-221018.iam.gserviceaccount.com%2F20200523%2Fmulti%2Fstorage%2Fgoog4_request&x-goog-date=202005" \
-                   "23T124251Z&x-goog-expires=604800&x-goog-signedheaders=host"
+        file_url = "https://storage.googleapis.com/io-feersum-vectors-nlu-prod/Extract_inbound_that_triggered_catchall_2020_04_20." \
+                   "csv?x-goog-signature=57da4f3fe51e7345ecbfd3a332aee3e91fa425a9bb3eb358d56283bb7500b9611e3b5bf758e8c5b95a44fe70a57f4" \
+                   "df4ae17ce96cf7c9f5401f1d2b89e6dfe1bc2aba8f39ebb2d3c190006f6b75372fc4d74a6bc15093fa746a7faaf4a7e13202b63ba786e6629b" \
+                   "7ced41d149deb54e686e4df7cac4094c31017ed15e6415fde7b1a0935069017ac6d18d42689d8d16b410ecb0f1b5e81e3ca4743fb6a6ad1f37" \
+                   "abbed51cb4ce045c2a68f50dcf6efa15b05747060a978a8ad6661e578577204e794a86502cf6604e5f38be943d9e9d2b8c62eefc505705e6e9" \
+                   "42c8a714a015d6d9aa1054ec64e09aad15319f6a34e7f5959094defa2c594d9e39306176e6875&x-goog-algorithm=GOOG4-RSA-SHA256&x-" \
+                   "goog-credential=gcp-storage%40feersum-221018.iam.gserviceaccount.com%2F20200617%2Fmulti%2Fstorage%2Fgoog4_request&" \
+                   "x-goog-date=20200617T030749Z&x-goog-expires=604800&x-goog-signedheaders=host"
 
         # Register the async callback sink callback.
         responses.add_callback(responses.POST,
@@ -46,7 +46,7 @@ class TestRestNGramsEndpoint(BaseTestCase):
                                callback=self.callback_sink,
                                content_type='application/json')
 
-        for idx in range(self.__test_ngrams_endpoint_async_num_requests):
+        for idx in range(self.__test_endpoint_async_num_requests):
             response_check = send_request_check_response(self.client, "/ngrams_url", "post",
                                                          {"file_url": file_url,
                                                           "file_format_version": "1.0",
@@ -61,26 +61,26 @@ class TestRestNGramsEndpoint(BaseTestCase):
 
         wait_iterations = 10
         while wait_iterations > 0:
-            print(f"test_ngrams_endpoint_async: Blindly waiting for callbacks to be received.... {wait_iterations}", flush=True)
+            print(f"test_endpoint_async: Blindly waiting for callbacks to be received.... {wait_iterations}", flush=True)
             time.sleep(3)
             wait_iterations -= 1
 
-        print("test_ngrams_endpoint_async: DONE waiting for callbacks to be received.", flush=True)
+        print("test_endpoint_async: DONE waiting for callbacks to be received.", flush=True)
 
         print('time = ' + str(time.time() - start_time))
 
-    def test_ngrams_endpoint_sync(self):
-        print("Rest HTTP test_ngrams_endpoint_sync:")
+    def test_endpoint_sync(self):
+        print("Rest HTTP test_endpoint_sync:")
         start_time = time.time()
 
-        file_url = "https://storage.googleapis.com/io-feersum-vectors-nlu-prod/Extract_inbound_that_triggered_catchall_2020_04_20.csv?x-" \
-                   "goog-signature=a4cdb1d4f809174ffbb1954f210cbfa2586c6d52783a328d46e95dbacd1fdf6c2f33660fdc603df9a8599357dd341c990eb10" \
-                   "f918561e702962f4f79d673436d07748f000e9bfbfbc0887e207995c7b8b5a8fb5b49dc01a3d5de5418fbe729e92ce76de4d35d7e736c924b411" \
-                   "7641b0a6a554e8bbb2c715eef4b86a9c669bdff7866c374197aa8d579e976116ee637012f06e27df16b9dc26d40ae3249593abf661d7224d4397" \
-                   "d1d0133b00f635cb434c38c0b3dd199344c434bcb5efc8a7c7f9175e855fd0c16d0121c4cbf6b46889f86528460e05fae232848a3d2e598d19b7" \
-                   "0bb9f3a4bae05a2995618806c9e128c1cab4fb7e52cb016673814074584a16e&x-goog-algorithm=GOOG4-RSA-SHA256&x-goog-credential=" \
-                   "gcp-storage%40feersum-221018.iam.gserviceaccount.com%2F20200523%2Fmulti%2Fstorage%2Fgoog4_request&x-goog-date=202005" \
-                   "23T124251Z&x-goog-expires=604800&x-goog-signedheaders=host"
+        file_url = "https://storage.googleapis.com/io-feersum-vectors-nlu-prod/Extract_inbound_that_triggered_catchall_2020_04_20." \
+                   "csv?x-goog-signature=57da4f3fe51e7345ecbfd3a332aee3e91fa425a9bb3eb358d56283bb7500b9611e3b5bf758e8c5b95a44fe70a57f4" \
+                   "df4ae17ce96cf7c9f5401f1d2b89e6dfe1bc2aba8f39ebb2d3c190006f6b75372fc4d74a6bc15093fa746a7faaf4a7e13202b63ba786e6629b" \
+                   "7ced41d149deb54e686e4df7cac4094c31017ed15e6415fde7b1a0935069017ac6d18d42689d8d16b410ecb0f1b5e81e3ca4743fb6a6ad1f37" \
+                   "abbed51cb4ce045c2a68f50dcf6efa15b05747060a978a8ad6661e578577204e794a86502cf6604e5f38be943d9e9d2b8c62eefc505705e6e9" \
+                   "42c8a714a015d6d9aa1054ec64e09aad15319f6a34e7f5959094defa2c594d9e39306176e6875&x-goog-algorithm=GOOG4-RSA-SHA256&x-" \
+                   "goog-credential=gcp-storage%40feersum-221018.iam.gserviceaccount.com%2F20200617%2Fmulti%2Fstorage%2Fgoog4_request&" \
+                   "x-goog-date=20200617T030749Z&x-goog-expires=604800&x-goog-signedheaders=host"
 
         response = send_request(self.client, "/ngrams_url", "post",
                                 {"file_url": file_url,

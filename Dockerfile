@@ -26,4 +26,4 @@ RUN python3 -m spacy download en
 
 EXPOSE 7100
 EXPOSE 9100
-CMD ["python3", "rest_flask_app.py", "--server_port=7100", "--prometheus_port=9100"]
+CMD ["python3", "flask_app.py", "--server_port=7100", "--prometheus_port=9100"]
