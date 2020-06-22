@@ -236,12 +236,20 @@ class TopicModellingGensimLDA(TopicModellingBase):
 
             model_list, coherence_values = self.__compute_coherence_values(ngrammed_dataframe_utterances)
             topics, coherence = self.__extract_topics(model_list, coherence_values)
-            topic_terms = [topic[1] for topic in topics]
+
+            topic_terms_float32 = [topic[1] for topic in topics]
+            topic_terms_float64 = []
+
+            for topics in topic_terms_float32:
+                topics_float64 = []
+                for word, score in topics:
+                    topics_float64.append((word, float(score)))
+                topic_terms_float64.append(topics_float64)
 
             response_frame: Dict[str, Any] = dict()
             response_frame['time_frame'] = time_frame
             response_frame['num_utterances'] = num_dataframe_utterances
-            response_frame['topics'] = topic_terms
+            response_frame['topics'] = topic_terms_float64
             response_frame['coherence'] = coherence
 
             response_frame_list.append(response_frame)
