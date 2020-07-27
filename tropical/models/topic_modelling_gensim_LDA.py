@@ -65,13 +65,25 @@ class TopicModellingGensimLDA(TopicModellingBase):
         """ Whitespace tokenize and lowercase"""
         return [utterance.lower().split() for utterance in utterances]
 
+    def __remove_stopwords(self, utterances, custom_stopwords=[]):
+        """ add custom stop words to default set, then remove all exact matches
+        """
+
+        basic_stopwords = set(nltk_stopwords.words('english')) & spacy_stopwords
+        custom_stop_words = set(custom_stopwords)
+        stops = set(basic_stopwords | custom_stop_words)
+
+        sans_stopwords = [[' '.join([word for word in utterance if word not in stops])] for utterance in utterances]
+
+        return sans_stopwords
+
     # ToDo : create the regex for this function
     @staticmethod
     def __remove_urls(utterances):
         """Explicitly remove URLS from content"""   # Usually Spam
         pass
 
-    # ToDo : create the regex for this function
+    # ToDo : populate functionality, using spacy (for english)
     @staticmethod
     def __lemmatize(utterances):
         """Can be used to allow only certain POS to be used (POS tagger for that language required)"""
@@ -114,11 +126,11 @@ class TopicModellingGensimLDA(TopicModellingBase):
     def __build_lda_model(self, ngrammed_utterances, num_topics):
         """ gensim implementation of Latent Dirichlet Allocation
         """
-        # Create Dictionary
-        id2word = corpora.Dictionary(ngrammed_utterances)
-
         # Create Corpus
         texts = ngrammed_utterances
+
+        # Create Dictionary
+        id2word = corpora.Dictionary(ngrammed_utterances)
 
         # Term Document Frequency
         corpus = [id2word.doc2bow(text) for text in texts]
@@ -129,16 +141,12 @@ class TopicModellingGensimLDA(TopicModellingBase):
                         num_topics=num_topics,
                         random_state=42,
                         update_every=8,
-                        chunksize=2048,
-                        passes=10,
+                        chunksize=500,
+                        passes=100,
                         alpha='auto',
                         per_word_topics=True)
 
         return lda_model
-
-    # TODO : Might want to consider calculating 'best' topic inside this function
-    #   PROS : Don't have to pass multiple models into other functions
-    #   CONS : Stuck with using coherence to evaluate topic model
 
     def __compute_coherence_values(self, ngrammed_utterances):
         """
@@ -156,14 +164,15 @@ class TopicModellingGensimLDA(TopicModellingBase):
         model_list : List of LDA topic models
         coherence_values : Coherence values corresponding to the LDA model with respective number of topics
         """
+
         coherence_values = []
         model_list = []
 
         start = self.min_topics
         limit = self.max_topics
         step = self.step
-
-        variations = limit//step
+        print(start, limit, step)
+        variations = (limit-start)//step
         if variations > 10:
             print(f"Running {variations} variations of the topic model, this might take a few minutes")
 
@@ -181,37 +190,154 @@ class TopicModellingGensimLDA(TopicModellingBase):
                                              coherence='c_v')
             coherence_values.append(coherence_model.get_coherence())
 
-        print(coherence_values)
         return model_list, coherence_values
 
-    def __extract_topics(self, model_list, coherence_values):
-        """
+    def __get_best_model(self, ngrammed_utterances):
+        """ Choose model with best coherence fro ma list of models
 
         """
+        model_list, coherence_values = self.__compute_coherence_values(ngrammed_utterances)
+
         best_model = model_list[np.argmax(coherence_values)]
         best_model_coherence = max(coherence_values)
 
-        return best_model.show_topics(formatted=False, num_topics=self.max_topics, num_words=10), best_model_coherence
+        return best_model, best_model_coherence
+
+    def __extract_topics(self, best_model):
+        """
+        """
+        return best_model.show_topics(formatted=False, num_topics=self.max_topics, num_words=10)
+
+    @staticmethod
+    def __get_top_utterances(best_model, ngrammed_utterances, uuids, top_n):
+        """ return uuids and probabilities for top n utterances per topic
+
+        """
+        # Create Dictionary
+        id2word = corpora.Dictionary(ngrammed_utterances)
+
+        # Term Document Frequency
+        corpus = [id2word.doc2bow(utterance) for utterance in ngrammed_utterances]
+
+        # Init output
+        utterance_topics_df = pd.DataFrame()
+
+        # Get main topic in each utterance
+        for i, row in enumerate(best_model[corpus]):
+            row = sorted(row[0], key=lambda x: (x[1]), reverse=True)
+            #  Get the Dominant topic, Percent Contribution and Keywords for each utterance
+            for j, (topic_num, prop_topic) in enumerate(row):
+                if j == 0:  # => dominant topic
+                    wp = best_model.show_topic(topic_num)    # word probability per topic
+                    topic_keywords = ", ".join([word for word, prop in wp])    # Don't need this for now
+                    utterance_topics_df = utterance_topics_df.append(pd.Series([int(topic_num),
+                                                                                round(prop_topic, 4),
+                                                                                topic_keywords]),
+                                                                     ignore_index=True)
+                else:
+                    break
+        utterance_topics_df.columns = ['Dominant_Topic', 'Perc_Contribution', 'Topic_Keywords']
+
+        # Add uuid to dataframe
+        utterance_topics_df['uuids'] = uuids
+        utterance_topics_df.sort_values(['Dominant_Topic', 'Perc_Contribution'], ascending=[True, False], inplace=True)
+
+        # return top_n utterances per topic, with probability
+        top_utterances = []
+        by_topic = utterance_topics_df.groupby('Dominant_Topic')
+
+        for topic_num, topic_df in by_topic:
+            topic_df = topic_df.head(top_n)
+            uuids = topic_df['uuids'].tolist()
+            scores = topic_df['Perc_Contribution'].tolist()
+            uuid_score = zip(uuids, scores)
+            top_utterances.append((topic_num, tuple(uuid_score)))
+
+        return top_utterances
+
+    def create_doc_topic_matrix(self, best_model, ngrammed_utterances, uuids):
+        """
+
+        """
+
+        # Create Dictionary
+        id2word = corpora.Dictionary(ngrammed_utterances)
+
+        # Term Document Frequency
+        corpus = [id2word.doc2bow(utterance) for utterance in ngrammed_utterances]
+
+        topic_distribution = best_model.get_document_topics(corpus, minimum_probability=0.0)
+
+        # create each row
+        topic_dict = {}
+        df_list = []
+        original_text = []
+
+        for row in range(0, len(corpus)):
+            for topic, weight in topic_distribution[row]:
+                topic_dict[topic] = weight
+            row_to_add = pd.DataFrame.from_dict(topic_dict, orient='index')
+            original_text.append(' '.join([t for t in ngrammed_utterances[row]]))
+            df_list.append(row_to_add.T)
+
+        big_df = pd.concat([df for df in df_list])
+        big_df.insert(0, 'uuid', uuids)
+
+        new_columns = ['uuid']
+        new_columns.extend('Topic ' + str(x) for x in range(0, best_model.num_topics))
+        big_df.columns = new_columns
+
+        return big_df
+
+    @staticmethod
+    def __format_topic_utterances(best_model, ngrammed_utterances, uuids):
+        """ return a dataframe with each utterance and it's topic distribution
+        """
+        # Create Dictionary
+        id2word = corpora.Dictionary(ngrammed_utterances)
+
+        # Term Document Frequency
+        corpus = [id2word.doc2bow(utterance) for utterance in ngrammed_utterances]
+
+        # Init output
+        utterance_topics_df = pd.DataFrame()
+
+        # Get main topic in each document
+        for i, row_list in enumerate(best_model[corpus]):
+            row = row_list[0] if best_model.per_word_topics else row_list
+            row = sorted(row, key=lambda x: (x[1]), reverse=True)
+            # Get the Dominant topic, Perc Contribution and Keywords for each document
+            for j, (topic_num, prop_topic) in enumerate(row):
+                if j == 0:  # => dominant topic
+                    wp = best_model.show_topic(topic_num)
+                    topic_keywords = ", ".join([word for word, prop in wp])
+                    utterance_topics_df = utterance_topics_df.append(
+                        pd.Series([int(topic_num), round(prop_topic, 4), topic_keywords]), ignore_index=True)
+                else:
+                    break
+        utterance_topics_df.columns = ['Dominant_Topic', 'Perc_Contribution', 'Topic_Keywords']
+
+        # Add original text and UUID to the end of the output
+        utterance_topics_df['uuid'] = uuids
+        utterance_topics_df['Text'] = ngrammed_utterances
+
+        return utterance_topics_df[['Text', 'uuid', 'Dominant_Topic', 'Perc_Contribution', 'Topic_Keywords']]
 
     def analyse_dataframe(self, big_dataframe_raw: pd.DataFrame,
-                          delimiter: bytes = b'_') -> List[Dict[str, Any]]:
+                          delimiter: bytes = b'_',
+                          tag='') -> List[Dict[str, Any]]:
         """
         Analyse the messages in the incoming dataframe and extract topics.
 
         :param big_dataframe_raw: The input dataframe {'time_frame':, 'uuid':, 'content':}
         :param delimiter:
-        :return: A dict [{'time_frame':, 'num_utterances':, 'topic_index': ['topic_terms':[]]}]
+        :return: A dict [{'time_frame':, 'num_utterances':, 'doc_topic_matrix :{{}}','topic_index': ['topic_terms':[]]}]
         """
-
-        # Remove any rows with NaNs and missing values.
         big_dataframe_raw = big_dataframe_raw.dropna()
-
         if big_dataframe_raw.columns[0] == 'day':
             new_columns = list(big_dataframe_raw.columns)
             new_columns[0] = 'time_frame'
             big_dataframe_raw.columns = new_columns
-
-        # big_dataframe_raw['time_frame'] = 'one_time_frame_to_rule_them_all'
 
         big_dataframe_raw.insert(len(big_dataframe_raw.columns), 'utterance_length', big_dataframe_raw['content'].str.len())
 
@@ -220,13 +346,13 @@ class TopicModellingGensimLDA(TopicModellingBase):
         big_dataframe = big_dataframe_raw[big_dataframe_raw['utterance_length'] <= utterance_length_threshold]
 
         response_frame_list: List[Dict[str, Any]] = list()
-
         for time_frame, data_frame in big_dataframe.groupby('time_frame'):
             print("Working on Frame", time_frame)
+
             dataframe_utterances = list(data_frame['content'])
             num_dataframe_utterances = len(dataframe_utterances)
 
-            # uuids = list(data_frame['uuid'])
+            uuids = list(data_frame['uuid'])
 
             tokenized_dataframe_utterances = self.__tokenize_and_lower(dataframe_utterances)
             ngrammed_dataframe_utterances = self.__build_ngrams(tokenized_dataframe_utterances,
@@ -234,23 +360,61 @@ class TopicModellingGensimLDA(TopicModellingBase):
                                                                 stopwords=self.__basic_stopwords,
                                                                 delimiter=delimiter)
 
-            model_list, coherence_values = self.__compute_coherence_values(ngrammed_dataframe_utterances)
-            topics, coherence = self.__extract_topics(model_list, coherence_values)
+            # Choosing to always remove stopwords
+            ngrammed_dataframe_utterances = self.__remove_stopwords(ngrammed_dataframe_utterances,
+                                                                     custom_stopwords=['u', 'm', 'l'])
 
-            topic_terms_float32 = [topic[1] for topic in topics]
+            best_model, best_model_coherence = self.__get_best_model(ngrammed_dataframe_utterances)
+
+
+            doc_topic_matrix = self.create_doc_topic_matrix(best_model=best_model,
+                                                            ngrammed_utterances=ngrammed_dataframe_utterances,
+                                                            uuids=uuids)
+
+            topic_terms = self.__extract_topics(best_model)
+            # top_utterances = self.__get_top_utterances(best_model,
+            #                                            ngrammed_dataframe_utterances,
+            #                                            uuids, 10)
+
+            topic_number = []
+            token_ids = []
+            token_weights = []
+            tokens = []
+
+            min_prob = 5e-4
+
+            for row in topic_terms:
+                for tok_id, tok_weight in row[1]:
+                    if tok_weight > min_prob:
+                        topic_number.append(row[0])
+                        tokens.append(tok_id)
+                        token_weights.append(tok_weight)
+                    else:
+                        print(
+                            f" Prob of {np.round(tok_weight, 5)} for token : '{tok_id}' is below threshold of {min_prob}")
+            topic_terms_df = pd.DataFrame({'topic_num': topic_number, 'token': tokens, 'weights': token_weights})
+
+            topic_terms_float32 = [topic[1] for topic in topic_terms]
             topic_terms_float64 = []
 
-            for topics in topic_terms_float32:
+            for i, topics in enumerate(topic_terms_float32):
                 topics_float64 = []
                 for word, score in topics:
                     topics_float64.append((word, float(score)))
-                topic_terms_float64.append(topics_float64)
+                topic_terms_float64.append({'Topic '+str(i): topics_float64})
+
+            # Convert doc_topic df to dict
+            doc_topic_matrix.set_index('uuid', inplace=True)
+            doc_topic_matrix_dict = doc_topic_matrix.to_dict(orient='index')
 
             response_frame: Dict[str, Any] = dict()
             response_frame['time_frame'] = time_frame
             response_frame['num_utterances'] = num_dataframe_utterances
+            response_frame['document_topic_matrix'] = doc_topic_matrix_dict
+
             response_frame['topics'] = topic_terms_float64
-            response_frame['coherence'] = coherence
+            # response_frame['top_utterances_per_topic'] = top_utterances
+            response_frame['coherence'] = best_model_coherence
 
             response_frame_list.append(response_frame)
 
