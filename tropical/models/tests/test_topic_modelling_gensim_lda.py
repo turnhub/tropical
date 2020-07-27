@@ -13,33 +13,26 @@ class TestTopicModellingGensimLDA(BaseTestCase):
     def test(self):
         print("Testing TestTopicModellingGensimLDA.test ...", flush=True)
 
-        file_url = "https://storage.googleapis.com/io-feersum-vectors-nlu-prod/Extract_inbound_that_triggered_" \
-                   "catchall_2020_04_20.csv?x-goog-signature=966cbb21e9eac23ea7811b94a7b6c050c97901f204acdfc1c99b49567810" \
-                   "ce8df1242e4953f886877da375d6968e8f5e7ce7d5ffc74bacc8cb057998e3346cf87f34d5109e6b26884cd4f268fb51d053609" \
-                   "1fd0eeb65e3979081ebb306c3f369d7bf90989e4f75bc29849c61658b5a61144720364550d9b63e4686bf61885603cdc0c25af0ef" \
-                   "afb50634e8c97aba77e66b9cd6403564907fd1e76b403d683c97561b6ad81323f55b0fe212b147381d2d5210b6df0c8cdc74373e71b" \
-                   "c6f27d68dd788c71b4a370452ec5cc32a6bb6c27403a6958adc4310ac6c696fa5badf70d6d54f62e7e82190524bba61ecea2167421bf" \
-                   "fa3b6a914d64f19b877d7fd654099&x-goog-algorithm=GOOG4-RSA-SHA256&x-goog-credential=gcp-storage%40feersum-2210" \
-                   "18.iam.gserviceaccount.com%2F20200618%2Fmulti%2Fstorage%2Fgoog4_request&x-goog-date=20200618T081124Z&x-goog" \
-                   "-expires=604800&x-goog-signedheaders=host"
+        file_url = "https://storage.googleapis.com/io-feersum-vectors-nlu-prod/Extract_inbound_that_triggered_catchall"\
+                "_2020_04_20.csv?x-goog-signature=6a5cda9bcbbfad95e1c35887c3f72b3b3ed19d772bd5cecb45c498ff85495ca3fb"\
+                "30b889dcc8884351dcb05006a3aa4cd1d6e54d25ce6081a0be83e039a684ed420adc963ab6a2b89eb25b3629b74b565252a9"\
+                "8b24fe9b16bbaefd68050fc879c4a20cbf5ca2d7d9015b42c7fb9de75756cf55fa72b086f5bb3e5c8f4ecbd86375f48f66461"\
+                "857e3e57835f8e9ded72dbe5b9b2480791c62b240ad84cfad82b83fd2164bd4842a3bfcb1f8e9e4ed03a0330d72561572809"\
+                "aa066bc88e438c579b4dd61000701b2af2659c29b5277e758ea9813894b552880c8c99236fc657dced20bcac77e7e4e529fc"\
+                "a1ce3d8d9bcf6182cd39b48723a890b3a845b98144b26&x-goog-algorithm=GOOG4-RSA-SHA256&x-goog-credential=gc"\
+                "p-storage%40feersum-221018.iam.gserviceaccount.com%2F20200727%2Fmulti%2Fstorage%2Fgoog4_request&x-go"\
+                "og-date=20200727T140145Z&x-goog-expires=604800&x-goog-signedheaders=host"
 
         # ===
         filename = wget.download(file_url)
-        print("filename =", filename)
-        df = pd.read_csv(filename, na_filter=False)
+        df = pd.read_csv(filename, na_filter=False, nrows=200)
         os.remove(filename)
 
-        print(df.columns)
-        print(df.describe())
-        print(df.sample(n=5))
-        # ===
-
-        analyser = topic_modelling_gensim_LDA.TopicModellingGensimLDA()
+        analyser = topic_modelling_gensim_LDA.TopicModellingGensimLDA(max_topics=10, min_topics=5, step=5)
         self.assertTrue(analyser is not None)
-        result = analyser.analyse_dataframe(df, delimiter=b'|')
-
-        # ToDo: Add a reference static test file and add some specific result tests here.
-
+        result = analyser.analyse_dataframe(df, delimiter=b'_')
+        # # ToDo: Add a reference static test file and add some specific result tests here.
+        #
         print(json.dumps(result, indent=4, sort_keys=True, ensure_ascii=False))
 
 
