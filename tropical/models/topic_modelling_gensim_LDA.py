@@ -50,9 +50,6 @@ class TopicModellingGensimLDA(TopicModellingBase):
         """Can be used to allow only certain POS to be used (POS tagger for that language required)"""
         pass
 
-    def __remove_urls(self):
-        pass
-
     def __build_ngrams(self,
                        tokenised_utterances,
                        stopwords,
