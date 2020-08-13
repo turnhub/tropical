@@ -193,7 +193,7 @@ class TopicModellingGensimLDA(TopicModellingBase):
         return model_list, coherence_values
 
     def __get_best_model(self, ngrammed_utterances):
-        """ Choose model with best coherence fro ma list of models
+        """ Choose model with best coherence from a list of models
 
         """
         model_list, coherence_values = self.__compute_coherence_values(ngrammed_utterances)
