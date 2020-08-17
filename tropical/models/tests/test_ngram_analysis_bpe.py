@@ -1,8 +1,9 @@
 import unittest
-import wget
-import os
-import pandas as pd
 import json
+import os
+
+import wget
+import pandas as pd
 
 from tropical.models import ngram_analysis_gensim_bpe
 from tropical.models.tests import BaseTestCase
