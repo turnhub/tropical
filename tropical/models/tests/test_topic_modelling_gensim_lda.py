@@ -13,15 +13,14 @@ class TestTopicModellingGensimLDA(BaseTestCase):
     def test(self):
         print("Testing TestTopicModellingGensimLDA.test ...", flush=True)
 
-        file_url = "https://storage.googleapis.com/io-feersum-vectors-nlu-prod/Extract_inbound_that_triggered_catchall"\
-                "_2020_04_20.csv?x-goog-signature=6a5cda9bcbbfad95e1c35887c3f72b3b3ed19d772bd5cecb45c498ff85495ca3fb"\
-                "30b889dcc8884351dcb05006a3aa4cd1d6e54d25ce6081a0be83e039a684ed420adc963ab6a2b89eb25b3629b74b565252a9"\
-                "8b24fe9b16bbaefd68050fc879c4a20cbf5ca2d7d9015b42c7fb9de75756cf55fa72b086f5bb3e5c8f4ecbd86375f48f66461"\
-                "857e3e57835f8e9ded72dbe5b9b2480791c62b240ad84cfad82b83fd2164bd4842a3bfcb1f8e9e4ed03a0330d72561572809"\
-                "aa066bc88e438c579b4dd61000701b2af2659c29b5277e758ea9813894b552880c8c99236fc657dced20bcac77e7e4e529fc"\
-                "a1ce3d8d9bcf6182cd39b48723a890b3a845b98144b26&x-goog-algorithm=GOOG4-RSA-SHA256&x-goog-credential=gc"\
-                "p-storage%40feersum-221018.iam.gserviceaccount.com%2F20200727%2Fmulti%2Fstorage%2Fgoog4_request&x-go"\
-                "og-date=20200727T140145Z&x-goog-expires=604800&x-goog-signedheaders=host"
+        file_url = "https://storage.googleapis.com/io-feersum-vectors-nlu-prod/Extract_inbound_that_triggered_catchall_2020_04_20.csv?"\
+"x-goog-signature=7a038d055fa6b6fd06384a84690deae8beda042450efbfd4935e23be843c624db6d34a573faa084a0539029d0f85dddedb6"\
+"88c843ad0671fe6578da0b041675ed9f68b315dafd97da197dd44503096cce45cdd364592fc61df16f6be41f8c8268a537b40bb57a6ea2c61fa4"\
+"381f3973222a57a5dbc38d82b1b0d91cbefb35024a173cbd726363dcdc8ba5b412de448b6309d5121eee470163c46750e92f93fc8b5e40750365"\
+"184a337c927b72c8cf9cedef830ecc475fec72a594fdea869a5f683e131144ae37f6413d84c79605f485aeb8a999f989f718fe63d68f0c6b2984"\
+"6f73ece8dac59a30cb68b9397947855f3caeb25aa41c1cba52d36f711c96fd031&x-goog-algorithm=GOOG4-RSA-SHA256&x-goog-credentia"\
+"l=gcp-storage%40feersum-221018.iam.gserviceaccount.com%2F20200818%2Fmulti%2Fstorage%2Fgoog4_request&x-goog-date=20200"\
+"818T082034Z&x-goog-expires=604800&x-goog-signedheaders=host"
 
         # ===
         filename = wget.download(file_url)
