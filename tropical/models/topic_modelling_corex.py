@@ -7,9 +7,7 @@ from spacy.lang.en.stop_words import STOP_WORDS as spacy_stopwords
 from nltk.corpus import stopwords as nltk_stopwords
 
 from corextopic import corextopic as ct
-
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-
 from tropical.models.topic_modelling_base import TopicModellingBase
 
 class TopicModellingCorex(TopicModellingBase):
@@ -91,7 +89,7 @@ class TopicModellingCorex(TopicModellingBase):
             print('Vectorizing using TF-IDF')
             
             vectorizer = TfidfVectorizer(
-                min_df=5,
+                min_df=2,
                 max_features=None,
                 ngram_range=(1, 2),
                 norm=None,
@@ -106,7 +104,7 @@ class TopicModellingCorex(TopicModellingBase):
             print('Vectorizing using Counts')
             
             vectorizer = CountVectorizer(
-                min_df=5,
+                min_df=2,
                 max_features=None,
                 ngram_range=(1, 2),
                 binary=True)
@@ -114,15 +112,11 @@ class TopicModellingCorex(TopicModellingBase):
             vectorizer = vectorizer.fit(data['processsed_content'])
             vocab = vectorizer.get_feature_names()
             vectors = vectorizer.transform(data['processsed_content'])
-            
-        print(f"vocab size  : {len(vocab)}")
-        print(f"vocab head : {vocab[:5]}")
-        print(f"vocab tail : {vocab[-5:]}")
 
         return vectors, vocab
 
     def train_topic_model(self, data, anchors=None, anchor_strength=3, vectorizer_method='tf-idf'):
- 
+
         vectors, vocab = self._vectorize_text(data, method=vectorizer_method)
         
         if anchors:
@@ -147,6 +141,9 @@ class TopicModellingCorex(TopicModellingBase):
             topic_df.index = data.index
             document_topic_matrix = pd.concat([data, topic_df], axis=1)
 
+            # drop columns so doc-topic matrix is same from lda topic model
+            document_topic_matrix.drop(['content', 'processsed_content', 'rn', 'time_frame'], axis=1)
+
         return document_topic_matrix
 
     def _extract_topics(self, model):
@@ -164,8 +161,7 @@ class TopicModellingCorex(TopicModellingBase):
                 print()
             return
 
-    def analyse_dataframe(self, big_dataframe_raw: pd.DataFrame,
-                          delimiter: bytes = b'_') -> List[Dict[str, Any]]:
+    def analyse_dataframe(self, big_dataframe_raw: pd.DataFrame) -> List[Dict[str, Any]]:
         """
         Analyse the messages in the incoming dataframe and extract topics.
 
@@ -187,6 +183,7 @@ class TopicModellingCorex(TopicModellingBase):
 
         response_frame_list: List[Dict[str, Any]] = list()
         for time_frame, data_frame in big_dataframe.groupby('time_frame'):
+            print(f"There are {(big_dataframe['time_frame'].nunique())} time frames")
             print("Working on Frame", time_frame)
 
             dataframe_utterances = list(data_frame['content'])
@@ -198,47 +195,11 @@ class TopicModellingCorex(TopicModellingBase):
             processsed_content = self.__remove_stopwords(tokenized_dataframe_utterances, custom_stopwords=None)
 
             data_frame['processsed_content'] = processsed_content
-            # print(data_frame.head())
 
             model = self.train_topic_model(data_frame)
             doc_topic_matrix = self.create_doc_topic_matrix(model, data_frame)
-            print(doc_topic_matrix)
             topic_terms = self._extract_topics(model)
-            # print(topic_terms)
 
-
-#             topic_terms = self.__extract_topics()
-
-#             topic_number = []
-#             token_ids = []
-#             token_weights = []
-#             tokens = []
-
-#             min_prob = 5e-4
-
-#             for row in topic_terms:
-#                 for tok_id, tok_weight in row[1]:
-#                     if tok_weight > min_prob:
-#                         topic_number.append(row[0])
-#                         tokens.append(tok_id)
-#                         token_weights.append(tok_weight)
-#                     else:
-#                         print(
-#                             f" Prob of {np.round(tok_weight, 5)} for token : '{tok_id}' is below threshold of {min_prob}")
-#             topic_terms_df = pd.DataFrame({'topic_num': topic_number,
-# 'token': tokens, 
-# 'weights': token_weights})
-
-#             topic_terms_float32 = [topic[1] for topic in topic_terms]
-#             topic_terms_float64 = []
-
-#             for i, topics in enumerate(topic_terms_float32):
-#                 topics_float64 = []
-#                 for word, score in topics:
-#                     topics_float64.append((word, float(score)))
-#                 topic_terms_float64.append({'Topic '+str(i): topics_float64})
-
-#             # Convert doc_topic df to dict
             doc_topic_matrix.set_index('uuid', inplace=True)
             doc_topic_matrix_dict = doc_topic_matrix.to_dict(orient='index')
 
