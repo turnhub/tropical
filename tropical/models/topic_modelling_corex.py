@@ -133,33 +133,49 @@ class TopicModellingCorex(TopicModellingBase):
         vectors, _ = self._vectorize_text(data, 'tf-idf')
         n_topics = self.n_topics
     
-        if method == 'default':
+        if method == 'detailed':
+            topic_weight = model.transform(vectors, details=True)    # [0]:p_y_given_x, [1]:log_z
             topic_df = pd.DataFrame(
-                model.transform(vectors, details=False),
-                columns=["topic_{}".format(i+1) for i in range(n_topics)]).astype(int)
+                topic_weight[0],
+                columns=["topic_{}".format(i+1) for i in range(n_topics)]).astype(float)
 
-            topic_df.index = data.index
-            document_topic_matrix = pd.concat([data, topic_df], axis=1)
+        else:
+            topic_weight = model.transform(vectors, details=False)    # zeroes and ones
 
-            # drop columns so doc-topic matrix is same from lda topic model
-            document_topic_matrix.drop(['content', 'processsed_content', 'rn', 'time_frame'], axis=1)
+        topic_df = pd.DataFrame(
+                topic_weight,
+                columns=["topic_{}".format(i+1) for i in range(n_topics)]).astype(float)
+
+        topic_df.index = data.index
+        document_topic_matrix = pd.concat([data, topic_df], axis=1)
+
+
+        # drop columns so doc-topic matrix is same from lda topic model
+        document_topic_matrix.drop(['content', 'processsed_content', 'rn', 'time_frame'], axis=1, inplace=True)
 
         return document_topic_matrix
 
-    def _extract_topics(self, model):
+    def extract_topics(self, model):
         """get top terms per topic """
+        topic_dict = {}
 
-        return model.get_topics(n_words=10)
+        for i, topic_ngrams in enumerate(model.get_topics(n_words=10)):
+            mutual_info = [ngrams[1] for ngrams in topic_ngrams if ngrams[1] > 0]
+            topic_ngrams = [ngram[0] for ngram in topic_ngrams if ngram[1] > 0]
+            print(f"Topic #{i+1}: {', '.join(t+'('+str(np.round(mi,2))+') ' for t,mi in zip(topic_ngrams, mutual_info))}")
+            print()
+            topic_dict[f'topic {i+1}'] = [(tok, str(np.round(mi, 2))) for tok, mi in zip(topic_ngrams, mutual_info)]
+        return topic_dict
 
-        def print_topics(self, model):
-            """print topics """
+    def print_topics(self, model):
+        """print topics """
 
-            for i, topic_ngrams in enumerate(model.get_topics(n_words=10)):
-                mutual_info = [ngrams[1] for ngrams in topic_ngrams if ngrams[1] > 0]
-                topic_ngrams = [ngram[0] for ngram in topic_ngrams if ngram[1] > 0]
-                print(f"Topic #{i+1}: {', '.join(t+'('+str(np.round(mi,2))+') ' for t,mi in zip(topic_ngrams, mutual_info))}")
-                print()
-            return
+        for i, topic_ngrams in enumerate(model.get_topics(n_words=10)):
+            mutual_info = [ngrams[1] for ngrams in topic_ngrams if ngrams[1] > 0]
+            topic_ngrams = [ngram[0] for ngram in topic_ngrams if ngram[1] > 0]
+            print(f"Topic #{i+1}: {', '.join(t+'('+str(np.round(mi,2))+') ' for t,mi in zip(topic_ngrams, mutual_info))}")
+            print()
+        return
 
     def analyse_dataframe(self, big_dataframe_raw: pd.DataFrame) -> List[Dict[str, Any]]:
         """
@@ -198,7 +214,7 @@ class TopicModellingCorex(TopicModellingBase):
 
             model = self.train_topic_model(data_frame)
             doc_topic_matrix = self.create_doc_topic_matrix(model, data_frame)
-            topic_terms = self._extract_topics(model)
+            topic_terms = self.extract_topics(model)
 
             doc_topic_matrix.set_index('uuid', inplace=True)
             doc_topic_matrix_dict = doc_topic_matrix.to_dict(orient='index')
@@ -207,8 +223,7 @@ class TopicModellingCorex(TopicModellingBase):
             response_frame['time_frame'] = time_frame
             response_frame['num_utterances'] = num_dataframe_utterances
             response_frame['document_topic_matrix'] = doc_topic_matrix_dict
-
-#             response_frame['topics'] = topic_terms_float64
+            response_frame['topics'] = topic_terms
 #             # response_frame['top_utterances_per_topic'] = top_utterances
 
             response_frame_list.append(response_frame)

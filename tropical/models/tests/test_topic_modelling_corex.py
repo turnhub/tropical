@@ -28,26 +28,15 @@ class TestTopicModellingCorex(BaseTestCase):
         filename = wget.download(file_url)
         print("filename =", filename)
 
-        # data_file = "/home/ari/Downloads/DSTV/04. Change_Package_All_Utterances_June_2020.csv"   
-        # df = pd.read_csv(data_file,names=['content'])
-        # df['time_frame'] = ['someday']*len(df)
-        # df['uuid'] = [x for x in range(0, len(df))]
-
-
         df = pd.read_csv(filename, na_filter=False)
         os.remove(filename)
-
-        print(df.columns)
-        print(df.describe())
-        print(df.sample(n=5))
-
-        analyser = topic_modelling_corex.TopicModellingCorex(n_topics=5)
+        analyser = topic_modelling_corex.TopicModellingCorex(n_topics=7)
         self.assertTrue(analyser is not None)
-        result = analyser.analyse_dataframe(df)
+        result = analyser.analyse_dataframe(df.tail(500))
 
 #         # TODO: Add a reference static test file and add some specific result tests here.
 
-        print(json.dumps(result[0], indent=4, sort_keys=True, ensure_ascii=False))
+        print(json.dumps(result, indent=4, sort_keys=True, ensure_ascii=False))
 
 
 if __name__ == '__main__':
