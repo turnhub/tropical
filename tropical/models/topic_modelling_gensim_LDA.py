@@ -9,6 +9,8 @@ from gensim.models.phrases import Phraser
 import gensim.corpora as corpora
 
 from gensim.models.ldamodel import LdaModel as LDA
+from gensim.models.ldamulticore import LdaMulticore
+
 from gensim.models import CoherenceModel
 
 from tropical.models.topic_modelling_base import TopicModellingBase
@@ -123,7 +125,7 @@ class TopicModellingGensimLDA(TopicModellingBase):
 
         return ngrammed_utterances
 
-    def __build_lda_model(self, ngrammed_utterances, num_topics):
+    def __build_lda_model(self, ngrammed_utterances, num_topics, multi_core=False):
         """ gensim implementation of Latent Dirichlet Allocation
         """
         # Create Corpus
@@ -135,16 +137,28 @@ class TopicModellingGensimLDA(TopicModellingBase):
         # Term Document Frequency
         corpus = [id2word.doc2bow(text) for text in texts]
 
-        # Build LDA model
-        lda_model = LDA(corpus=corpus,
-                        id2word=id2word,
-                        num_topics=num_topics,
+        if multi_core:
+            lda_model = LdaMulticore(corpus=corpus, id2word=id2word, num_topics=num_topics,
                         random_state=42,
                         update_every=8,
                         chunksize=500,
                         passes=100,
                         alpha='auto',
-                        per_word_topics=True)
+                        per_word_topics=True,
+                        workers=2)    
+                        # Set workers directly, using cpu_count()-1 incorrectly counts hyper-threaded cpus
+        else:
+    
+            # Build LDA model
+            lda_model = LDA(corpus=corpus,
+                            id2word=id2word,
+                            num_topics=num_topics,
+                            random_state=42,
+                            update_every=8,
+                            chunksize=500,
+                            passes=100,
+                            alpha='auto',
+                            per_word_topics=True)
 
         return lda_model
 
@@ -223,7 +237,7 @@ class TopicModellingGensimLDA(TopicModellingBase):
         utterance_topics_df = pd.DataFrame()
 
         # Get main topic in each utterance
-        for i, row in enumerate(best_model[corpus]):
+        for _, row in enumerate(best_model[corpus]):
             row = sorted(row[0], key=lambda x: (x[1]), reverse=True)
             #  Get the Dominant topic, Percent Contribution and Keywords for each utterance
             for j, (topic_num, prop_topic) in enumerate(row):
