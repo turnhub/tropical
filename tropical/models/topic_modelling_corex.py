@@ -162,8 +162,8 @@ class TopicModellingCorex(TopicModellingBase):
         for i, topic_ngrams in enumerate(model.get_topics(n_words=10)):
             mutual_info = [ngrams[1] for ngrams in topic_ngrams if ngrams[1] > 0]
             topic_ngrams = [ngram[0] for ngram in topic_ngrams if ngram[1] > 0]
-            print(f"Topic #{i+1}: {', '.join(t+'('+str(np.round(mi,2))+') ' for t,mi in zip(topic_ngrams, mutual_info))}")
-            print()
+            # print(f"Topic #{i+1}: {', '.join(t+'('+str(np.round(mi,2))+') ' for t,mi in zip(topic_ngrams, mutual_info))}")
+            # print()
             topic_dict[f'topic {i+1}'] = [(tok, str(np.round(mi, 2))) for tok, mi in zip(topic_ngrams, mutual_info)]
         return topic_dict
 
