@@ -35,7 +35,7 @@ importlib-metadata==1.6.0  # via api-tackle, catalogue, jsonschema
 inflection==0.4.0         # via api-tackle, connexion
 itsdangerous==1.1.0       # via api-tackle, flask
 jellyfish==0.8.2          # via -r etc/requirements.in
-jinja2==2.11.2            # via api-tackle, flask, swagger-ui-bundle
+jinja2==2.11.3            # via api-tackle, flask, swagger-ui-bundle
 jmespath==0.10.0          # via boto3, botocore
 joblib==0.15.1            # via nltk, scikit-learn
 jsonschema==3.2.0         # via api-tackle, connexion, openapi-spec-validator
