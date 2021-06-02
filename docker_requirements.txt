@@ -73,7 +73,7 @@ thinc==7.4.0              # via spacy
 threadpoolctl==2.0.0      # via scikit-learn
 tokenizers==0.7.0         # via -r etc/requirements.in
 tqdm==4.46.0              # via nltk, spacy, thinc
-urllib3==1.25.9           # via api-tackle, botocore, requests
+urllib3==1.26.5           # via api-tackle, botocore, requests
 wasabi==0.6.0             # via spacy, thinc
 werkzeug==1.0.1           # via api-tackle, flask
 wget==3.2                 # via -r etc/requirements.in, api-tackle
