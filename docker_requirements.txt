@@ -43,7 +43,7 @@ mako==1.1.2               # via alembic, api-tackle
 markupsafe==1.1.1         # via api-tackle, jinja2, mako
 murmurhash==1.0.2         # via preshed, spacy, thinc
 nltk==3.5                 # via -r etc/requirements.in
-numpy==1.18.4             # via blis, gensim, pandas, scikit-learn, scipy, spacy, thinc
+numpy==1.22.0             # via blis, gensim, pandas, scikit-learn, scipy, spacy, thinc
 openapi-spec-validator==0.2.8  # via api-tackle, connexion
 pandas==1.0.3             # via -r etc/requirements.in
 pip-tools==5.1.0          # via -r etc/requirements.in, api-tackle
