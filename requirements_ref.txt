@@ -37,7 +37,7 @@ itsdangerous==1.1.0       # via api-tackle, flask
 jellyfish==0.8.2          # via -r etc/requirements.in
 jinja2==2.11.2            # via api-tackle, flask, swagger-ui-bundle
 jmespath==0.10.0          # via boto3, botocore
-joblib==0.15.1            # via nltk, scikit-learn
+joblib==1.2.0            # via nltk, scikit-learn
 jsonschema==3.2.0         # via api-tackle, connexion, openapi-spec-validator
 mako==1.1.2               # via alembic, api-tackle
 markupsafe==1.1.1         # via api-tackle, jinja2, mako
