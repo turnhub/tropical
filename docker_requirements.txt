@@ -13,7 +13,7 @@ boto3==1.13.16            # via smart-open
 boto==2.49.0              # via smart-open
 botocore==1.16.16         # via boto3, s3transfer
 catalogue==1.0.0          # via spacy, thinc
-certifi==2020.4.5.1       # via api-tackle, requests
+certifi==2022.12.7       # via api-tackle, requests
 chardet==3.0.4            # via api-tackle, requests
 click==7.1.2              # via api-tackle, clickclick, flask, nltk, pip-tools
 clickclick==1.2.2         # via api-tackle, connexion
